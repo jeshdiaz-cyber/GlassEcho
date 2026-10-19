@@ -12,8 +12,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Echo workbook">
 <meta name="robots" content="noindex,nofollow">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <title>Echo workbook</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
@@ -479,6 +479,58 @@ td.dd{background:color-mix(in srgb,var(--warn-bg) 55%,transparent)}
 .ackbox .rules{margin:12px 0 0; display:grid; gap:8px; font-size:15px; padding-left:20px}
 @media print{ #ack{display:none} }
 
+.indet{margin:14px 0 0;padding:12px 14px;border:1px solid var(--warn);border-left-width:4px;border-radius:var(--r-sm);background:color-mix(in srgb,var(--warn-bg) 45%,var(--surface))}
+.page > .indet{margin:0 0 18px}
+.indet h4{font:600 16px var(--head);margin:0 0 6px}
+.indet table{font-size:14px;margin-top:10px}
+.indet td,.indet th{padding:7px 8px}
+.indet td:first-child{min-width:150px}
+.indet .outs{display:flex;flex-wrap:wrap;gap:5px 12px}
+.indet .o{font-size:13.5px;white-space:nowrap}
+@media (max-width:820px){ .indet table,.indet tbody,.indet tr,.indet td{display:block;width:100%} .indet thead{display:none} .indet tr{padding:8px 0;border-bottom:1px solid var(--line)} .indet td{border:0;padding:3px 0} .indet .o{white-space:normal} }
+.indet ul{margin:4px 0 0;padding-left:20px;font-size:14px;display:grid;gap:5px;max-width:95ch}
+.indet-brief{margin:6px 0 0; font-size:13.5px; line-height:1.45; color:var(--muted)}
+.indet-brief a{white-space:nowrap}
+.glance.chips dd .chip{max-width:100%}
+@media (max-width:560px){ .glance.chips{grid-template-columns:minmax(0,1fr); gap:3px} .glance.chips dt{padding-top:8px} }
+.dcard{margin-top:18px}
+.dcard .dpath{display:grid; grid-template-columns:repeat(var(--n,5),minmax(0,1fr)); gap:16px; margin-top:12px}
+.dst{position:relative; border:1px solid var(--line-2); border-radius:var(--r-sm); padding:10px 11px; background:var(--surface); min-width:0}
+.dst + .dst::before{content:"→"; position:absolute; left:-14px; top:50%; transform:translateY(-50%); color:var(--faint); font-size:13px; line-height:1}
+.dst h4{font:600 14.5px var(--head); margin:0 0 7px}
+.dst.off{opacity:.55; border-style:dashed}
+.dst.stuck{border:2px solid var(--warn); background:color-mix(in srgb,var(--warn-bg) 55%,var(--surface))}
+.dst.res{background:var(--sunk); display:flex; flex-direction:column; justify-content:flex-start}
+.dst.res .chip{align-self:flex-start}
+.dlamps{display:flex; flex-wrap:wrap; gap:5px}
+.dlamp{display:inline-block; font:500 12.5px var(--head); padding:3px 8px; border-radius:6px; line-height:1.25; border:1px solid transparent; background:var(--note-bg); color:var(--note)}
+.dlamp small{display:block; font:400 11.5px var(--body); opacity:.9}
+.dlamp.on{background:var(--bad-bg); color:var(--bad)}
+.dlamp.no{background:var(--ok-bg); color:var(--ok)}
+.dlamp.mid{background:var(--warn-bg); color:var(--warn)}
+.dlamp.miss{background:transparent; border:1px dashed var(--line-2); color:var(--faint)}
+.dlamp.miss.maybe{border-color:var(--warn); color:var(--warn)}
+.dlamp.miss.key{border:1.5px dashed var(--accent); color:var(--accent); background:var(--accent-soft); font-weight:600}
+.dlamp .star{margin-right:3px}
+.dtag{font:600 11.5px var(--head); margin:8px 0 0; color:var(--muted); text-transform:uppercase; letter-spacing:.04em}
+.dst.stuck .dtag{color:var(--warn)}
+.dnote{font-size:12px; color:var(--faint); margin:2px 0 0; line-height:1.35}
+.dleg{display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12.5px; color:var(--muted); margin:10px 0 0}
+.dl{display:inline-block; width:13px; height:13px; border-radius:3px; margin-right:5px; vertical-align:-2px; font-style:normal; font-size:9px; line-height:11px; text-align:center}
+.dl.on{background:var(--bad-bg); border:1px solid var(--bad)} .dl.no{background:var(--ok-bg); border:1px solid var(--ok)} .dl.mid{background:var(--warn-bg); border:1px solid var(--warn)}
+.dl.miss{border:1px dashed var(--line-2)} .dl.key{border:1.5px dashed var(--accent); color:var(--accent); background:var(--accent-soft)}
+.dbody{margin-top:14px; padding-top:12px; border-top:1px solid var(--line)}
+.dcall{font:600 15.5px var(--head); margin:0 0 12px; padding:8px 12px; border-left:4px solid var(--warn); border-radius:0 var(--r-sm) var(--r-sm) 0; background:color-mix(in srgb,var(--warn-bg) 55%,var(--surface))}
+.dcols{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:20px}
+.dif{list-style:none; padding:0; margin:4px 0 0}
+.dif li{padding:7px 0; border-top:1px solid var(--line); font-size:14px}
+.dif li:first-child{border-top:0}
+.dif .outs{display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:4px; font-size:13px; color:var(--muted)}
+.dif .outs .chip{font-size:12.5px; padding:1px 7px}
+.dnext{margin:4px 0 0; padding-left:20px; font-size:14px; line-height:1.45}
+.dnext li{margin:5px 0}
+@media (max-width:980px){ .dcard .dpath{grid-template-columns:repeat(2,minmax(0,1fr))} .dst + .dst::before{display:none} .dst.res{grid-column:1/-1} .dcols{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:560px){ .dcard .dpath{grid-template-columns:minmax(0,1fr); gap:18px} .dst + .dst::before{display:block; content:"↓"; left:50%; top:-15px; transform:translateX(-50%)} }
 </style>
 </head>
 <body>
@@ -2274,7 +2326,360 @@ function autoMass(){
 /* one line for the summary statement: the embolic sources found */
 function embolismLine(){ const s = embolicSources(); if (!s.hi.length && !s.lo.length) return '';
   return 'Cardiac source of embolism: ' + [s.hi.length && 'high potential: ' + s.hi.join(', '), s.lo.length && 'low potential: ' + s.lo.join(', ')].filter(Boolean).join('; ') + '.'; }
-function summaryText(){ const base = String(g('Report!B4') || ''), e = embolismLine(); return e ? (/^Enter measurements/.test(base) ? e : base + '\n' + e) : base; }
+function summaryText(){ const base = String(g('Report!B4') || ''), e = embolismLine(); return addDiaLine(e ? (/^Enter measurements/.test(base) ? e : base + '\n' + e) : base, false); }
+
+/* ---------- ASE 2025 diastology when indeterminate: what is missing, what each missing value would decide, and the next step (added in this web version) ----------
+   The outcomes are found by running the page's own ASE 2025 formulas on test values on either side of each cut-off. */
+const DIA_RES = 'Diastology 2025!B91';
+const isIndetText = t => /indetermin|possible elevated|insufficient|grade needs|too few/i.test(String(t || ''));
+const diaCore = t => String(t || '').split(' · general grade')[0];
+function simDia(over){
+  const c0 = CACHE, savedF = {}, hadI = {}, oldI = {};
+  for (const k in over){
+    if (FORMULAS[k]){ savedF[k] = FORMULAS[k]; const v = over[k]; FORMULAS[k] = () => v; }
+    else { hadI[k] = k in INPUTS; oldI[k] = INPUTS[k]; INPUTS[k] = over[k]; }
+  }
+  CACHE = new Map(); let out;
+  try { out = g(DIA_RES); }
+  finally {
+    CACHE = c0;
+    for (const k in savedF) FORMULAS[k] = savedF[k];
+    for (const k in hadI){ if (hadI[k]) INPUTS[k] = oldI[k]; else delete INPUTS[k]; }
+  }
+  return isErr(out) ? '' : diaCore(out);
+}
+function diaShort(t){
+  const s = diaCore(t).replace(/^(AF|MAC|PH|Transplant|MR|MS|HCM|LVAD|RCM): /, '');
+  if (isIndetText(s)) return /grade needs/i.test(s) ? 'Elevated LAP, grade still open' : 'Still indeterminate';
+  if (/grade 3/i.test(s)) return 'Grade 3, markedly elevated LAP';
+  if (/grade 2/i.test(s)) return 'Grade 2, elevated LAP';
+  if (/grade 1/i.test(s)) return 'Grade 1, normal LAP';
+  if (/normal diastolic function/i.test(s)) return 'Normal function and LAP';
+  if (/likely/i.test(s)) return 'Elevated filling pressure likely';
+  if (/no indicators/i.test(s)) return 'No indicators of elevated pressure';
+  if (/elevated lap/i.test(s)) return 'Elevated LAP';
+  if (/normal lap/i.test(s)) return 'Normal LAP';
+  return s;
+}
+/* what each population's algorithm uses; cases are test values on either side of the cut-off, hold pins derived values so one finding is tested at a time */
+function diaProbes(pop){
+  const E = 'Echo!', D = 'Diastology 2025!', T = k => fmt(k).t;
+  const now = (k, u) => () => T(k) ? T(k) + (u ? ' ' + u : '') : '';
+  const P = (label, short, keys, link, cases, extra) => Object.assign({ label, short, keys, link, cases: cases.map(c => ({ t: c[0], o: c[1] })) }, extra || {});
+  const one = (k, a, b) => [[a[0], { [k]: a[1] }], [b[0], { [k]: b[1] }]];
+  const eprime = P('Septal and lateral e′', 'e′', [E+'B183', E+'B184'], 'echo-r183',
+    [['reduced', { [E+'B183']: 4, [E+'B184']: 5, [E+'B189']: 4.5 }], ['normal', { [E+'B183']: 14, [E+'B184']: 16, [E+'B189']: 15 }]],
+    { hold: [E+'B190', E+'B191', E+'B192'], now: () => [T(E+'B183') && 'septal ' + T(E+'B183'), T(E+'B184') && 'lateral ' + T(E+'B184')].filter(Boolean).join(', ') + ' cm/s' });
+  const eeKeys = [E+'B190', E+'B191', E+'B192'], eeNow = () => [T(E+'B190') && 'average ' + T(E+'B190'), T(E+'B191') && 'septal ' + T(E+'B191'), T(E+'B192') && 'lateral ' + T(E+'B192')].filter(Boolean).join(', ');
+  const ee = (cases) => P('E/e′ (needs mitral E and e′)', 'E/e′', eeKeys, 'echo-r180', cases, { now: eeNow });
+  const eeHi = { [E+'B190']: 16, [E+'B191']: 17, [E+'B192']: 15 }, eeLo = { [E+'B190']: 9, [E+'B191']: 10, [E+'B192']: 8 };
+  const ea = (cases, extra) => P('E/A ratio (needs mitral E and A)', 'E/A', [E+'B188'], 'echo-r180', cases, Object.assign({ now: now(E+'B188') }, extra || {}));
+  const tr = (hi, lo) => P('Peak TR velocity (or PASP)', 'peak TR velocity', [E+'B186', E+'B226'], 'echo-r186',
+    [[hi, { [E+'B186']: 3.1, [E+'B226']: 42 }], [lo, { [E+'B186']: 2.3, [E+'B226']: 25 }]],
+    { now: () => [T(E+'B186') && T(E+'B186') + ' m/s', T(E+'B226') && 'PASP ' + T(E+'B226') + ' mmHg'].filter(Boolean).join(', ') });
+  const trOnly = P('Peak TR velocity', 'peak TR velocity', [E+'B186'], 'echo-r186', one(E+'B186', ['>2.8 m/s', 3.1], ['≤2.8 m/s', 2.4]), { now: now(E+'B186', 'm/s') });
+  const lars = (hi, lo, a, b) => P('LA reservoir strain', 'LA reservoir strain', [D+'B34'], 'dia-r34', one(D+'B34', [hi, a], [lo, b]), { now: now(D+'B34', '%') });
+  const pvsd = (hi, lo, a, b) => P('Pulmonary vein S/D ratio', 'pulmonary vein S/D', [D+'B37'], 'dia-r35', one(D+'B37', [hi, a], [lo, b]), { now: now(D+'B37') });
+  const lavi = (hi, lo, a, b, extra) => P('LA volume index', 'LA volume index', [E+'B193'], 'echo-r185', one(E+'B193', [hi, a], [lo, b]), Object.assign({ now: now(E+'B193', 'mL/m²') }, extra || {}));
+  const ivrt = (hi, lo, a, b) => P('IVRT', 'IVRT', [D+'B42'], 'dia-r42', one(D+'B42', [hi, a], [lo, b]), { hold: [D+'B44'], now: now(D+'B42', 'ms') });
+  const ara = (hi, lo) => P('Pulmonary vein Ar − mitral A duration', 'Ar−A duration', [D+'B41'], 'dia-r39', one(D+'B41', [hi, 40], [lo, 10]), { now: now(D+'B41', 'ms') });
+  const ratio = (hi, lo) => P('IVRT / TE−e′', 'IVRT/TE−e′', [D+'B44'], 'dia-r43', one(D+'B44', [hi, 3], [lo, 8]), { now: now(D+'B44') });
+  const laviOk = () => g(D+'B9') === 'Y';
+  switch (pop){
+    case 'General (sinus rhythm)': return [
+      eprime, ee([['increased (average ≥14, septal ≥15 or lateral ≥13)', { [E+'B190']: 16, [E+'B191']: 17, [E+'B192']: 15 }], ['normal', { [E+'B190']: 7, [E+'B191']: 8, [E+'B192']: 6 }]]),
+      tr('TR ≥2.8 m/s or PASP ≥35 mmHg', 'below both cut-offs'),
+      ea([['≤0.8', { [E+'B188']: 0.7 }], ['between 0.8 and 2', { [E+'B188']: 1.3 }], ['≥2', { [E+'B188']: 2.4 }]]),
+      lars('≤18%', '>18%', 15, 30), pvsd('≤0.67', '>0.67', 0.5, 1.2), lavi('>34 mL/m²', '≤34 mL/m²', 42, 26, { skip: laviOk }), ivrt('≤70 ms', '>70 ms', 60, 95),
+      P('PR end-diastolic velocity', 'PR end-diastolic velocity', [D+'B45'], 'dia-r45', [['≥2 m/s (PA diastolic ≥16 mmHg)', { [D+'B45']: 2.3, [D+'B46']: 25 }], ['<2 m/s', { [D+'B45']: 1.2, [D+'B46']: 10 }]], { now: now(D+'B45', 'm/s') }),
+      P('Mitral L-wave', 'mitral L-wave', [D+'B47'], 'dia-r47', one(D+'B47', ['≥50 cm/s', 60], ['<50 cm/s', 20]), { now: now(D+'B47', 'cm/s') }),
+      ara('>30 ms', '≤30 ms'),
+      P('Change in E/A with Valsalva', 'Valsalva E/A change', [D+'B49'], 'dia-r48', one(D+'B49', ['fall ≥50%', 60], ['fall <50%', 15]), { now: now(D+'B49', '%') })];
+    case 'Atrial fibrillation': return [
+      P('Mitral E velocity', 'mitral E', [E+'B180'], 'echo-r180', one(E+'B180', ['≥100 cm/s', 110], ['<100 cm/s', 80]), { hold: [E+'B190', E+'B191', E+'B192', E+'B188'], now: now(E+'B180', 'cm/s') }),
+      P('Septal E/e′', 'septal E/e′', [E+'B191'], 'echo-r183', one(E+'B191', ['>11', 14], ['≤11', 8]), { now: now(E+'B191') }),
+      tr('TR >2.8 m/s or PASP >35 mmHg', 'below both cut-offs'),
+      P('E deceleration time', 'deceleration time', [E+'B182'], 'echo-r182', one(E+'B182', ['≤160 ms', 140], ['>160 ms', 200]), { now: now(E+'B182', 'ms') }),
+      lars('<18%', '≥18%', 15, 30), pvsd('<1', '≥1', 0.7, 1.3),
+      P('Body mass index (height and weight)', 'BMI', [D+'B31'], 'echo-r14', one(D+'B31', ['>30 kg/m²', 33], ['≤30 kg/m²', 25]), { now: now(D+'B31', 'kg/m²') })];
+    case 'Moderate/severe MAC': return [
+      ea([['<0.8', { [E+'B188']: 0.6 }], ['0.8 to 1.8', { [E+'B188']: 1.3 }], ['>1.8', { [E+'B188']: 2.2 }]]), ivrt('<80 ms', '≥80 ms', 65, 95)];
+    case 'Pulmonary hypertension (non-cardiac)': return [
+      ea([['≤0.8 with E ≤50 cm/s', { [E+'B188']: 0.7, [E+'B180']: 45 }], ['between 0.8 and 2', { [E+'B188']: 1.3 }], ['≥2', { [E+'B188']: 2.4 }]], { hold: eeKeys }),
+      lars('≤18%', '>18%', 15, 26),
+      P('Lateral E/e′', 'lateral E/e′', [E+'B192'], 'echo-r184', [['<8', { [E+'B192']: 6 }], ['8 to 13', { [E+'B192']: 10 }], ['>13', { [E+'B192']: 15 }]], { now: now(E+'B192') }),
+      eprime];
+    case 'Heart transplant': return [
+      P('Average E/e′', 'average E/e′', [E+'B190'], 'echo-r180', [['<7', { [E+'B190']: 5 }], ['7 to 14', { [E+'B190']: 10 }], ['>14', { [E+'B190']: 16 }]], { now: now(E+'B190') }),
+      P('E / strain rate during isovolumic relaxation', 'E/SR-IVR', [D+'B50'], 'dia-r50', one(D+'B50', ['≤200 cm', 150], ['>200 cm', 260]), { now: now(D+'B50', 'cm') }),
+      trOnly];
+    case 'Significant MR': return [ivrt('<60 ms', '≥60 ms', 50, 90), ara('≥30 ms', '<30 ms'), ratio('<5.6', '≥5.6'),
+      Object.assign(ee([['average >14 (counts only with reduced LVEF)', eeHi], ['≤14', eeLo]]), { skip: () => !(typeof g(E+'B43') === 'number' && g(E+'B43') < 50) })];
+    case 'Mitral stenosis': return [ivrt('<60 ms', '≥60 ms', 50, 90),
+      P('Mitral A velocity', 'mitral A', [E+'B181'], 'echo-r181', one(E+'B181', ['>150 cm/s', 170], ['≤150 cm/s', 90]), { hold: [E+'B188'], now: now(E+'B181', 'cm/s') }), ratio('<4.2', '≥4.2')];
+    case 'HCM': return [ee([['average >14', eeHi], ['≤14', eeLo]]), ara('≥30 ms', '<30 ms'), trOnly, lavi('>34 mL/m²', '≤34 mL/m²', 42, 26)];
+    case 'LVAD': return [
+      ea([['>2', { [E+'B188']: 2.4 }], ['≤2', { [E+'B188']: 1.2 }]]),
+      P('RA pressure (IVC)', 'RA pressure', [E+'B225'], 'echo-r223', one(E+'B225', ['>10 mmHg', 15], ['≤10 mmHg', 3]), { hold: [E+'B226'], now: now(E+'B225', 'mmHg') }),
+      P('PASP', 'PASP', [E+'B226'], 'echo-r186', one(E+'B226', ['>40 mmHg', 50], ['≤40 mmHg', 30]), { now: now(E+'B226', 'mmHg') }),
+      ee([['average >14 or septal ≥15', eeHi], ['below both', eeLo]]), lavi('>33 mL/m²', '≤33 mL/m²', 40, 25)];
+    case 'Restrictive cardiomyopathy': return [ee([['average >14', eeHi], ['≤14', eeLo]]),
+      P('E deceleration time', 'deceleration time', [E+'B182'], 'echo-r182', one(E+'B182', ['<140 ms', 120], ['≥140 ms', 190]), { now: now(E+'B182', 'ms') }),
+      ea([['>2.5', { [E+'B188']: 3 }], ['≤2.5', { [E+'B188']: 1.2 }]]), ivrt('<50 ms', '≥50 ms', 40, 80)];
+    default: return [];
+  }
+}
+function diaNextStep(pop, d){
+  const S = [], sympt = g('Diastology 2025!B10') === 'Y', missEA = d.rows.some(r => r.missing && r.p.short === 'E/A');
+  if (pop === 'General (sinus rhythm)'){
+    const core = g('Diastology 2025!H70');
+    if (/grade needs/i.test(d.core)) S.push('LAP is elevated; record mitral E and A to grade it: E/A <2 is grade 2, E/A ≥2 grade 3.');
+    else {
+      if (typeof core === 'number' && core < 2) S.push('Measure the three core variables first: septal and lateral e′, E/e′ (needs mitral E), and peak TR velocity from several windows, with agitated saline or an enhancing agent if the TR jet is incomplete.');
+      S.push('Add one of the additional variables: LA reservoir strain (≤18% means elevated LAP), pulmonary vein S/D (≤0.67), LA volume index (>34 mL/m²) or, alternatively, IVRT (≤70 ms).');
+      S.push('If none of them is available or reliable, use the supplemental signs: PR end-diastolic velocity ≥2 m/s (PA diastolic pressure ≥16 mmHg), mitral L-wave ≥50 cm/s, Ar−A >30 ms, or a fall of 50% or more in E/A with Valsalva.');
+      if (missEA) S.push('Record mitral E and A as well: with reduced e′ and normal E/e′ and TR, E/A ≤0.8 is grade 1; once LAP is elevated, E/A sets grade 2 or 3.');
+    }
+  } else if (pop === 'Atrial fibrillation'){
+    S.push('Average several beats whose cycle length reflects the mean heart rate; recording E and e′ in the same beat (dual Doppler) is more accurate.');
+    S.push('With 2 of the 4 first-step criteria positive, add LA reservoir strain (<18%), pulmonary vein S/D (<1) and BMI (>30 kg/m²): 2 or 3 of them positive means elevated LAP, none means normal.');
+    S.push('Little beat-to-beat change in mitral inflow as the cycle length varies also points to elevated filling pressure.');
+  } else if (pop === 'Moderate/severe MAC'){
+    S.push('With E/A between 0.8 and 1.8, measure IVRT (CW between the LVOT and mitral inflow): 80 ms or more means normal LAP, under 80 ms elevated.');
+  } else if (pop === 'Pulmonary hypertension (non-cardiac)'){
+    S.push('Measure LA reservoir strain: >18% means normal LAP, ≤18% elevated.');
+    S.push('If strain is not available use lateral E/e′ (septal E/e′ is unreliable with septal flattening): <8 normal, >13 elevated; 8 to 13 stays indeterminate.');
+  } else if (pop === 'Heart transplant'){
+    S.push('Measure LV strain rate during isovolumic relaxation from the three apical views and compute E/SR-IVR: ≤200 cm means normal LAP, >200 cm elevated.');
+    S.push('If that is not feasible, use peak TR velocity: ≤2.8 m/s normal, >2.8 m/s elevated.');
+  } else {
+    S.push('For this group the guideline gives indicators (Table 7), not a stepwise algorithm. Measure the missing ones below; two or more pointing the same way make the estimate more secure.');
+  }
+  if (pop === 'General (sinus rhythm)' && !/grade needs/i.test(d.core)){
+    if (sympt) S.push('Symptomatic with indeterminate filling pressure at rest: a diastolic exercise echocardiogram is recommended (positive with average E/e′ ≥14 or septal ≥15 and peak TR >3.2 m/s); if it is negative or inconclusive, right heart catheterisation with exercise.');
+    else S.push('If the patient has exertional dyspnea, a diastolic exercise echocardiogram can settle it (mark the patient as symptomatic in the Diastology set-up).');
+  } else if (pop !== 'General (sinus rhythm)') S.push('If the answer still matters clinically, right heart catheterisation measures it directly.');
+  return S;
+}
+let _diaMemo = null;
+function diaIndet(){
+  const c = CACHE;
+  if (_diaMemo && _diaMemo.cache === c) return _diaMemo.v;
+  const v = computeDiaIndet(); _diaMemo = { cache: c, v }; return v;
+}
+function computeDiaIndet(){
+  const res = g(DIA_RES), core = isErr(res) ? '' : diaCore(res);
+  if (!core || !isIndetText(core)) return null;
+  const pop = String(g('Diastology 2025!B7') || ''), present = k => typeof g(k) === 'number';
+  const rows = [];
+  for (const p of diaProbes(pop)){
+    if (p.skip && p.skip()) continue;
+    if (p.keys.some(present)){ rows.push({ p, missing: false, now: p.now ? p.now() : '' }); continue; }
+    const hold = {}; for (const k of (p.hold || [])){ const v = g(k); hold[k] = isErr(v) || v == null ? '' : v; }
+    const outs = p.cases.map(c => { const r = simDia(Object.assign({}, hold, c.o)); return { t: c.t, r, settled: !!r && !isIndetText(r) }; });
+    rows.push({ p, missing: true, hold, outs, settles: outs.every(o => o.settled), partly: outs.some(o => o.settled) });
+  }
+  const miss = rows.filter(r => r.missing), pairs = [];
+  if (miss.length > 1 && !miss.some(r => r.settles)){
+    const cand = miss.slice(0, 6);
+    for (let i = 0; i < cand.length && pairs.length < 4; i++) for (let j = i + 1; j < cand.length && pairs.length < 4; j++){
+      let ok = true;
+      for (const ci of cand[i].p.cases){ for (const cj of cand[j].p.cases){ const r = simDia(Object.assign({}, cand[i].hold, cand[j].hold, ci.o, cj.o)); if (!r || isIndetText(r)){ ok = false; break; } } if (!ok) break; }
+      if (ok) pairs.push([cand[i].p.short, cand[j].p.short]);
+    }
+  }
+  const d = { core, pop, rows, pairs };
+  d.next = diaNextStep(pop, d);
+  return d;
+}
+const DIA_POPNAME = { 'Atrial fibrillation': 'atrial fibrillation', 'Moderate/severe MAC': 'mitral annular calcification', 'Pulmonary hypertension (non-cardiac)': 'pulmonary hypertension', 'Heart transplant': 'heart transplant', 'Significant MR': 'mitral regurgitation', 'Mitral stenosis': 'mitral stenosis', 'HCM': 'hypertrophic cardiomyopathy', 'LVAD': 'LV assist device', 'Restrictive cardiomyopathy': 'restrictive cardiomyopathy' };
+const orList = a => a.length < 2 ? (a[0] || '') : a.slice(0, -1).join(', ') + ' or ' + a[a.length - 1];
+function diaIndetReportLine(){
+  if (String(g('Diastology 2025!B11')) !== '2025') return '';
+  const d = diaIndet(); if (!d) return '';
+  const miss = d.rows.filter(r => r.missing), settle = miss.filter(r => r.settles).map(r => r.p.short), part = miss.filter(r => r.partly).map(r => r.p.short);
+  let s = 'Diastolic function indeterminate by ASE 2025' + (DIA_POPNAME[d.pop] ? ' (' + DIA_POPNAME[d.pop] + ' algorithm)' : '') + ': ';
+  if (/grade needs/i.test(d.core)) s = 'Left atrial pressure elevated by ASE 2025; grade not assigned: ';
+  s += settle.length ? orList(settle.slice(0, 4)) + (settle.length > 4 ? ', or one of the supplemental signs,' : '') + ' would classify it.' : d.pairs.length ? orList(d.pairs.map(p => p[0] + ' with ' + p[1])) + ' together would classify it.' : part.length ? orList(part) + ' may classify it.' : 'every input of the algorithm is entered.';
+  if (d.pop === 'General (sinus rhythm)' && !/grade needs/i.test(d.core) && g('Diastology 2025!B10') === 'Y') s += ' Symptomatic: a diastolic exercise echocardiogram is recommended.';
+  return s;
+}
+/* puts the indeterminate note under the "Diastolic function:" line (the first one in the summary, the last one in the full report) */
+function addDiaLine(t, last){
+  const l = diaIndetReportLine(); if (!l || !t) return t;
+  const lines = t.split('\n'), idx = lines.map((x, i) => /^Diastolic function:/.test(x) ? i : -1).filter(i => i >= 0);
+  if (!idx.length) return t;
+  lines.splice((last ? idx[idx.length - 1] : idx[0]) + 1, 0, l);
+  return lines.join('\n');
+}
+/* one-line version for the Study overview: what is missing and what would classify it */
+function diaIndetBrief(){
+  const p = el('p', { class: 'indet-brief' }); p.hidden = true;
+  bind(() => {
+    const d = diaIndet(); p.hidden = !d; p.replaceChildren(); if (!d) return;
+    const miss = d.rows.filter(r => r.missing), settle = miss.filter(r => r.settles).map(r => r.p.short), part = miss.filter(r => r.partly && !r.settles).map(r => r.p.short);
+    const grade = /grade needs/i.test(d.core);
+    let t;
+    if (settle.length) t = (grade ? 'To grade it, measure ' : 'To classify it, measure ') + orList(settle.slice(0, 4)) + (settle.length > 4 ? ' (or a supplemental sign)' : '') + (settle.length > 1 ? '; any one settles it.' : '.');
+    else if (d.pairs.length) t = 'To classify it, measure ' + orList(d.pairs.slice(0, 3).map(x => x[0] + ' with ' + x[1])) + '; no single value settles it.';
+    else if (part.length) t = 'Missing: ' + orList(part.slice(0, 4)) + ' (may classify it, depending on the value).';
+    else t = miss.length ? 'Missing: ' + orList(miss.slice(0, 4).map(r => r.p.short)) + ', but none would settle it on its own.' : 'Every input is entered and it is still indeterminate at rest.';
+    if (!grade && d.pop === 'General (sinus rhythm)' && g('Diastology 2025!B10') === 'Y') t += ' Symptomatic: diastolic exercise echo recommended.';
+    else if (!settle.length && !d.pairs.length && d.pop === 'General (sinus rhythm)' && !grade) t += ' Consider a diastolic exercise echo.';
+    add(p, t + ' ', el('a', { href: '#dia-indet' }, 'Details'));
+  });
+  return p;
+}
+function diaIndetPanel(){
+  const box = el('div', { class: 'indet', role: 'region', 'aria-label': 'Indeterminate diastolic function, next step' });
+  box.hidden = true;
+  const rank = r => r.settles ? 0 : r.partly ? 1 : 2;
+  bind(() => {
+    const d = diaIndet(); box.hidden = !d; box.replaceChildren(); if (!d) return;
+    const miss = d.rows.filter(r => r.missing).sort((a, b) => rank(a) - rank(b)), have = d.rows.filter(r => !r.missing);
+    add(box, el('h4', null, /grade needs/i.test(d.core) ? 'Grade not assigned by ASE 2025: what would complete it' : 'Indeterminate by ASE 2025: what would classify it'),
+      el('p', { class: 'p-ref' }, el('span', { class: 'chip warn' }, d.core), d.pop ? '  Algorithm: ' + d.pop + '.' : ''));
+    if (have.length) add(box, el('p', { style: 'font-size:14px;margin-top:8px' }, el('b', null, 'Already counted: '), have.map(r => r.p.short + (r.now ? ' ' + r.now : '')).join('; ') + '.'));
+    if (miss.length){
+      const tb = el('tbody');
+      for (const r of miss){
+        const outs = el('div', { class: 'outs' }, r.outs.map(o => { const s = diaShort(o.r); return el('span', { class: 'o' }, 'if ' + o.t + ' → ', el('span', { class: 'chip ' + (o.settled ? tone(s) : 'warn') }, s)); }));
+        const eff = r.settles ? el('span', { class: 'chip ok' }, 'Settles it') : r.partly ? el('span', { class: 'chip warn' }, 'Settles it in some cases') : el('span', { class: 'chip' }, 'Not on its own');
+        add(tb, el('tr', null, el('td', null, el('b', null, r.p.label), el('br'), el('a', { href: '#' + r.p.link }, 'Enter it')), el('td', null, outs), el('td', null, eff)));
+      }
+      add(box, el('div', { style: 'overflow-x:auto' }, el('table', null, el('thead', null, el('tr', null, ['Not entered', 'If it were…', 'Effect'].map(t => el('th', null, t)))), tb)));
+    } else add(box, el('p', { style: 'font-size:14px;margin-top:8px' }, 'Every input this algorithm uses is entered, and the result still comes out indeterminate at rest.'));
+    if (d.pairs.length) add(box, el('p', { style: 'font-size:14px;margin-top:8px' }, el('b', null, 'No single value settles it. These pairs do: '), d.pairs.map(p => p[0] + ' with ' + p[1]).join('; ') + '.'));
+    add(box, el('p', { style: 'font:600 14.5px var(--head);margin-top:12px' }, 'Suggested next step'), el('ul', null, d.next.map(t => el('li', null, t))),
+      el('p', { class: 'p-ref', style: 'margin-top:8px' }, 'The outcomes come from running the ASE 2025 algorithm of this page on test values either side of each cut-off. They show what each finding would mean, not what to expect.'));
+  });
+  return box;
+}
+
+/* ---------- Study overview: ASE 2025 diastology pathway card (added in this web version) ----------
+   One box per step of the population's algorithm, one lamp per finding: red abnormal, green normal, amber in the grey zone,
+   dashed when not entered, and a star on the missing findings that would settle an indeterminate result. */
+function diaStrip(pop){
+  const E = 'Echo!', D = 'Diastology 2025!';
+  const num = k => { const v = g(k); return typeof v === 'number' ? v : null; };
+  const b01 = k => { const v = g(D + k); return v === 1 || v === 'Yes' ? 1 : (v === 0 || v === 'No') ? 0 : null; };
+  const val = (k, u) => () => { const t = fmt(k).t; return t ? t + (u || '') : ''; };
+  /* L(label, keys, state, value): state returns 1 abnormal, 0 normal, 'mid' grey zone, null not judged */
+  const L = (t, keys, st, v) => ({ t, keys, st, v: v || val(keys[0]) });
+  const gt = (k, c) => () => { const x = num(k); return x == null ? null : x > c ? 1 : 0; };
+  const ge = (k, c) => () => { const x = num(k); return x == null ? null : x >= c ? 1 : 0; };
+  const lt = (k, c) => () => { const x = num(k); return x == null ? null : x < c ? 1 : 0; };
+  const le = (k, c) => () => { const x = num(k); return x == null ? null : x <= c ? 1 : 0; };
+  const band = (k, lo, hi) => () => { const x = num(k); return x == null ? null : x < lo ? 0 : x > hi ? 1 : 'mid'; };
+  const eKeys = [E+'B183', E+'B184'], eeKeys = [E+'B190', E+'B191', E+'B192'];
+  const eeV = () => { const a = fmt(E+'B190').t, s = fmt(E+'B191').t; return a ? 'avg ' + a : s ? 'sept ' + s : fmt(E+'B192').t ? 'lat ' + fmt(E+'B192').t : ''; };
+  const trV = () => { const t = fmt(E+'B186').t, p = fmt(E+'B226').t; return t ? t + ' m/s' : p ? 'PASP ' + p : ''; };
+  const trAny = (cv, cp) => () => { const t = num(E+'B186'), p = num(E+'B226'); if (t == null && p == null) return null; return (t != null && t > cv) || (p != null && p > cp) ? 1 : 0; };
+  const lars = c => L('LA strain', [D+'B34'], () => { const x = num(D+'B34'); return x == null ? null : x <= c ? 1 : 0; }, val(D+'B34', '%'));
+  const larsLt = c => L('LA strain', [D+'B34'], lt(D+'B34', c), val(D+'B34', '%'));
+  const ivrt = c => L('IVRT', [D+'B42'], lt(D+'B42', c), val(D+'B42', ' ms'));
+  const ara = L('Ar−A', [D+'B41'], ge(D+'B41', 30), val(D+'B41', ' ms'));
+  const avgEE = c => L('E/e′', [E+'B190'], gt(E+'B190', c), () => fmt(E+'B190').t ? 'avg ' + fmt(E+'B190').t : '');
+  const tr28 = L('TR', [E+'B186'], gt(E+'B186', 2.8), val(E+'B186', ' m/s'));
+  const lavi = c => L('LAVi', [E+'B193'], gt(E+'B193', c), val(E+'B193'));
+  const ea = (st) => L('E/A', [E+'B188'], st || (() => null));
+  const S = (title, lamps, note) => ({ title, lamps, note });
+  switch (pop){
+    case 'General (sinus rhythm)': return [
+      S('Core', [L('e′', eKeys, () => b01('B67'), () => [fmt(E+'B183').t, fmt(E+'B184').t].filter(Boolean).join(' / ')), L('E/e′', eeKeys, () => b01('B68'), eeV), L('TR / PASP', [E+'B186', E+'B226'], () => b01('B69'), trV)]),
+      S('Additional', [lars(18), L('PV S/D', [D+'B37'], le(D+'B37', 0.67)), L('LAVi', [E+'B193'], gt(E+'B193', 34)), L('IVRT', [D+'B42'], le(D+'B42', 70), val(D+'B42', ' ms'))], 'Any one breaks a 2-of-3 tie'),
+      S('Supplemental', [L('PR end-diastolic', [D+'B45'], ge(D+'B45', 2), val(D+'B45', ' m/s')), L('L-wave', [D+'B47'], ge(D+'B47', 50)), L('Ar−A', [D+'B41'], gt(D+'B41', 30), val(D+'B41', ' ms')), L('Valsalva', [D+'B49'], ge(D+'B49', 50), val(D+'B49', '%'))], 'When the additional ones are missing'),
+      S('Grade', [ea()], 'E/A ≤0.8 grade 1 · <2 grade 2 · ≥2 grade 3')];
+    case 'Atrial fibrillation': return [
+      S('First step', [L('Mitral E', [E+'B180'], ge(E+'B180', 100), val(E+'B180', ' cm/s')), L('Septal E/e′', [E+'B191'], gt(E+'B191', 11)), L('TR / PASP', [E+'B186', E+'B226'], trAny(2.8, 35), trV), L('DT', [E+'B182'], le(E+'B182', 160), val(E+'B182', ' ms'))], '≥3 elevated · ≤1 normal'),
+      S('Second step', [larsLt(18), L('PV S/D', [D+'B37'], lt(D+'B37', 1)), L('BMI', [D+'B31'], gt(D+'B31', 30))], 'Only when 2 of 4 are positive')];
+    case 'Moderate/severe MAC': return [
+      S('E/A', [ea(band(E+'B188', 0.8, 1.8))], '<0.8 normal · >1.8 elevated'),
+      S('IVRT', [ivrt(80)], 'For E/A 0.8–1.8')];
+    case 'Pulmonary hypertension (non-cardiac)': return [
+      S('E/A', [ea(() => { const x = num(E+'B188'), e = num(E+'B180'); return x == null ? null : x >= 2 ? 1 : x <= 0.8 && (e == null || e <= 50) ? 0 : 'mid'; })], '≤0.8 normal · ≥2 elevated'),
+      S('LA strain', [lars(18)], 'For the grey zone'),
+      S('Lateral E/e′', [L('Lateral E/e′', [E+'B192'], band(E+'B192', 8, 13))], 'If strain is not available')];
+    case 'Heart transplant': return [
+      S('Average E/e′', [L('E/e′', [E+'B190'], band(E+'B190', 7, 14))], '<7 normal · >14 elevated'),
+      S('E/SR-IVR', [L('E/SR-IVR', [D+'B50'], gt(D+'B50', 200), val(D+'B50', ' cm'))], 'For E/e′ 7–14'),
+      S('TR', [tr28], 'If strain rate is not feasible')];
+    case 'Significant MR': return [S('Indicators (Table 7)', [ivrt(60), ara, L('IVRT/TE−e′', [D+'B44'], lt(D+'B44', 5.6))].concat(num(E+'B43') != null && num(E+'B43') < 50 ? [avgEE(14)] : []))];
+    case 'Mitral stenosis': return [S('Indicators (Table 7)', [ivrt(60), L('Mitral A', [E+'B181'], gt(E+'B181', 150)), L('IVRT/TE−e′', [D+'B44'], lt(D+'B44', 4.2))])];
+    case 'HCM': return [S('Indicators (Table 7)', [avgEE(14), ara, tr28, lavi(34)])];
+    case 'LVAD': return [S('Indicators (Table 7)', [ea(gt(E+'B188', 2)), L('RAP', [E+'B225'], gt(E+'B225', 10), val(E+'B225', ' mmHg')), L('PASP', [E+'B226'], gt(E+'B226', 40)), avgEE(14), lavi(33)])];
+    case 'Restrictive cardiomyopathy': return [S('Indicators (Table 7)', [avgEE(14), L('DT', [E+'B182'], lt(E+'B182', 140), val(E+'B182', ' ms')), ea(gt(E+'B188', 2.5)), ivrt(50)])];
+    default: return [];
+  }
+}
+/* the short "what would classify it" sentence, shared with the card */
+function diaBriefText(d){
+  const miss = d.rows.filter(r => r.missing), settle = miss.filter(r => r.settles).map(r => r.p.short), part = miss.filter(r => r.partly && !r.settles).map(r => r.p.short);
+  const grade = /grade needs/i.test(d.core);
+  if (settle.length) return (grade ? 'To grade it, measure ' : 'To classify it, measure ') + orList(settle.slice(0, 4)) + (settle.length > 4 ? ' (or a supplemental sign)' : '') + (settle.length > 1 ? ' — any one settles it.' : '.');
+  if (d.pairs.length) return 'No single value settles it. Measure ' + orList(d.pairs.slice(0, 3).map(x => x[0] + ' with ' + x[1])) + '.';
+  if (part.length) return orList(part.slice(0, 4)) + ' may classify it, depending on the value.';
+  return miss.length ? 'The findings still missing would not settle it on their own.' : 'Every input is entered and it is still indeterminate at rest.';
+}
+function diaCard(){
+  const S = 'Diastology 2025!';
+  const sub = el('p', { class: 'p-ref' }), strip = el('div', { class: 'dpath' }), legend = el('p', { class: 'dleg' }), body = el('div', { class: 'dbody' });
+  add(legend, el('span', null, el('i', { class: 'dl on' }), 'abnormal'), el('span', null, el('i', { class: 'dl no' }), 'normal'), el('span', null, el('i', { class: 'dl mid' }), 'grey zone'),
+    el('span', null, el('i', { class: 'dl miss' }), 'not entered'), el('span', null, el('i', { class: 'dl key' }, '★'), 'would settle it'));
+  bind(() => {
+    const pop = String(g(S + 'B7') || ''), d = diaIndet(), res = g(S + 'D91'), resT = fmt(S + 'D91').t;
+    const steps = diaStrip(pop), present = k => { const v = g(k); return typeof v === 'number' || (typeof v === 'string' && v !== ''); };
+    const anyIn = steps.some(s => s.lamps.some(l => l.keys.some(present)));
+    sub.textContent = 'ASE 2025 · ' + (pop ? pop.replace(/ \(.*\)$/, '') + ' algorithm' : 'algorithm');
+    /* which missing findings settle it, or may */
+    const missRows = d ? d.rows.filter(r => r.missing) : [], hit = (l, f) => missRows.some(r => f(r) && r.p.keys.some(k => l.keys.includes(k)));
+    const keyOf = l => d && hit(l, r => r.settles) ? 'key' : d && hit(l, r => r.partly) ? 'maybe' : '';
+    let stuck = -1;
+    if (d){ stuck = steps.findIndex(s => s.lamps.some(l => !l.keys.some(present) && keyOf(l)));
+      if (stuck < 0 || !steps[stuck].lamps.some(l => !l.keys.some(present) && keyOf(l) === 'key')) stuck = steps.findIndex(s => s.lamps.some(l => !l.keys.some(present) && keyOf(l) === 'key'));
+      if (stuck < 0) stuck = steps.findIndex(s => s.lamps.some(l => !l.keys.some(present))); }
+    strip.replaceChildren();
+    steps.forEach((s, i) => {
+      const lamps = s.lamps.map(l => {
+        const on = l.keys.some(present), st = on ? l.st() : null, k = on ? '' : keyOf(l), v = on ? l.v() : '';
+        const cls = 'dlamp ' + (!on ? 'miss' + (k ? ' ' + k : '') : st === 1 ? 'on' : st === 0 ? 'no' : st === 'mid' ? 'mid' : 'neu');
+        return el('span', { class: cls, title: !on ? (k === 'key' ? 'Not entered: would settle it' : k === 'maybe' ? 'Not entered: may settle it' : 'Not entered') : st === 1 ? 'Abnormal' : st === 0 ? 'Normal' : st === 'mid' ? 'Grey zone' : '' },
+          k === 'key' ? el('b', { class: 'star' }, '★') : null, l.t, v ? el('small', null, v) : null);
+      });
+      const nOn = s.lamps.filter(l => l.keys.some(present)), nAb = nOn.filter(l => l.st() === 1).length;
+      let state = '', tag = '';
+      if (d && i === stuck){ state = ' stuck'; tag = 'Measure here'; }
+      else if (d && stuck >= 0 && i > stuck && !nOn.length){ state = ' off'; tag = 'Not reached'; }
+      else if (!nOn.length){ state = ' off'; tag = anyIn ? 'Not needed' : 'Not entered'; }
+      else tag = s.title === 'Grade' ? 'Sets the grade' : s.lamps.length === 1 ? 'Entered' : nAb + ' of ' + nOn.length + ' abnormal';
+      add(strip, el('div', { class: 'dst' + state }, el('h4', null, s.title), el('div', { class: 'dlamps' }, lamps), el('p', { class: 'dtag' }, tag), s.note ? el('p', { class: 'dnote' }, s.note) : null));
+    });
+    const rc = el('span', { class: 'chip ' + tone(resT) }, resT || 'Not assessed');
+    add(strip, el('div', { class: 'dst res' + (d ? ' indet' : '') }, el('h4', null, 'Result'), rc));
+    strip.style.setProperty('--n', steps.length + 1);
+    /* below the strip */
+    body.replaceChildren();
+    if (!anyIn){
+      add(body, el('p', { class: 'p-ref', style: 'font-size:14px' }, 'Enter mitral E and A, septal and lateral e′ and peak TR velocity to start. ', el('a', { href: '#echo-r180' }, 'Go to the measurements')));
+      return;
+    }
+    if (!d){
+      const why = fmt(S + 'B110').t;
+      add(body, el('p', { style: 'font-size:14.5px' }, why || ''), el('p', { class: 'p-ref' }, el('a', { href: '#dia' }, 'Diastology page'), ' · nothing more is needed to classify it.'));
+      return;
+    }
+    add(body, el('p', { class: 'dcall' }, diaBriefText(d)));
+    const miss = d.rows.filter(r => r.missing && (r.settles || r.partly)).sort((a, b) => (b.settles - a.settles)).slice(0, 4);
+    const cols = el('div', { class: 'dcols' });
+    if (miss.length) add(cols, el('div', null, el('p', { class: 'cmpk' }, 'If you measure it'),
+      el('ul', { class: 'dif' }, miss.map(r => el('li', null, el('a', { href: '#' + r.p.link }, r.p.label), el('span', { class: 'outs' },
+        r.outs.map(o => { const s = diaShort(o.r); return el('span', { class: 'o' }, o.t + ' → ', el('span', { class: 'chip ' + (o.settled ? tone(s) : 'warn') }, s)); })))))));
+    add(cols, el('div', null, el('p', { class: 'cmpk' }, 'Suggested next step'), el('ol', { class: 'dnext' }, d.next.map(t => el('li', null, t)))));
+    add(body, cols, el('p', { class: 'p-ref', style: 'margin-top:8px' }, 'Outcomes come from running the page\'s own ASE 2025 algorithm on test values either side of each cut-off. ', el('a', { href: '#dia-indet' }, 'Full table on the Diastology page')));
+  });
+  return el('section', { class: 'card dcard' }, el('h2', null, 'Diastolic function'), sub, strip, legend, body);
+}
+
 
 /* ---------- app core ---------- */
 const M = MODEL;
@@ -3201,7 +3606,7 @@ page('overview', 'Study overview', 'start', root => {
     el('section', { class: 'card' }, el('h3', null, el('i', null, '3'), 'Finish the report'), el('ul', null,
       el('li', null, link('report', 'Report'), el('span', null, 'Indication, image quality and prior study, then copy the summary or the full report.')))));
   add(root, el('div', { class: 'toolbar' }, el('button', { class: 'btn primary', type: 'button', data: { newcase: '1' } }, 'Start a new case'), el('span', { class: 'p-ref' }, 'Empties the fields, collapses every section and opens Echo measurements.')),
-    el('div', { class: 'ov' }, el('div', { style: 'display:grid;gap:18px' }, card, glance, el('section', { class: 'card' }, el('h2', null, 'Cardiomyopathy suggestion'), cmpBlock(), el('p', { class: 'p-ref', style: 'margin-top:10px' }, 'Worked out from the numbers entered; not diagnoses. Details on the ', link('cmp', 'Cardiomyopathies page'), '.'))), el('div', { style: 'display:grid;gap:18px' }, wm, comp)), steps,
+    el('div', { class: 'ov' }, el('div', { style: 'display:grid;gap:18px' }, card, glance, el('section', { class: 'card' }, el('h2', null, 'Cardiomyopathy suggestion'), cmpBlock(), el('p', { class: 'p-ref', style: 'margin-top:10px' }, 'Worked out from the numbers entered; not diagnoses. Details on the ', link('cmp', 'Cardiomyopathies page'), '.'))), el('div', { style: 'display:grid;gap:18px' }, wm, comp)), diaCard(), steps,
     el('p', { class: 'foot' }, M.echoNote));
 });
 
@@ -3376,6 +3781,7 @@ page('echo', 'Echo measurements', 'enter', root => {
         el('div', null, el('p', { class: 'p-ref' }, 'ASE/EACVI 2016'), chip('Echo!D200')),
         el('div', null, el('p', { class: 'p-ref' }, 'Do they agree?'), matchChip(K(S, 'F108')))),
       why, list,
+      diaIndetPanel(),
       el('p', { class: 'p-ref', style: 'margin-top:8px' }, 'LA volume is entered with the atria. The extra 2025 inputs, special populations and the full 2016 algorithm are on the ', link('dia', 'Diastology page'), '.'));
   };
   echoSecs = paramSections('Echo', rows, 'echo', { 34: figGeometry, 201: () => [diaResult(), figDoppler()], 238: figPH }, false);
@@ -3477,10 +3883,10 @@ page('dia', 'Diastology', 'enter', root => {
   for (const r of M.dia){
     if (r.h){
       skip = false;
-      if (/^7\./.test(r.h)){ skip = true; continue; }                                  // final assessment is shown in the result card
+      if (/^[67]\./.test(r.h)){ skip = true; continue; }                               // special-population flags feed the result and the indeterminate panel; final assessment is in the result card                                  // final assessment is shown in the result card
       if (/^8\./.test(r.h)) rows.push({ r: 9016, h: 'ASE/EACVI 2016 algorithm' }, ...[194, 195, 196, 197, 198, 199, 200].map(erow));
       if (/^2\./.test(r.h)){ rows.push({ r: r.r, h: 'Measurements' }, ...[180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 201].map(erow), ...[14, 26, 27, 29, 30, 31].map(drow)); skip = true; continue; }
-      rows.push({ r: r.r, h: r.h.replace(/^\d+\.\s*/, '').replace(/^Is diastolic/, 'ASE 2025: is diastolic').replace(/^LAP estimation/, 'ASE 2025: LAP estimation').replace(/^Special populations/, 'ASE 2025: special populations') });
+      rows.push({ r: r.r, h: r.h.replace(/^\d+\.\s*/, '').replace(/^Is diastolic/, 'ASE 2025: is diastolic').replace(/^LAP estimation/, 'ASE 2025: LAP estimation').replace(/\s*\(Figure 3, sinus rhythm\)/, '') });
       continue;
     }
     if (!skip) rows.push(r);
@@ -3533,7 +3939,7 @@ page('dia', 'Diastology', 'enter', root => {
   }
   const age = el('div', { class: 'tbl' }, el('h2', null, 'Age-specific normal ranges'), el('table', null, el('thead', null, el('tr', null, M.diaAge.head.map(t => el('th', null, t)))), ab), el('p', null, M.diaAge.note));
   add(root, el('p', { class: 'lead' }, 'One place for diastolic function. The measurements are the same ones as on the Echo page, so a change in either place shows in both. The result is graded by ASE 2025 and by ASE/EACVI 2016, and only the points where they differ are listed.'),
-    el('div', { class: 'ov', style: 'margin-bottom:18px' }, res, cmp), secs.map(s => s.node), age);
+    el('div', { class: 'ov', style: 'margin-bottom:18px' }, res, cmp), Object.assign(diaIndetPanel(), { id: 'dia-indet' }), secs.map(s => s.node), age);
 });
 
 /* ----- prosthetic valves ----- */
@@ -3911,7 +4317,7 @@ page('report', 'Report', 'report', root => {
   for (const r of R.checks){ const li = el('li'); bind(() => { const t = fmt(K(S, 'B' + r)).t; li.textContent = t; li.className = t.startsWith('⚠') ? 'bad' : t.startsWith('✔') ? 'ok' : ''; li.hidden = !t; }); add(checks, li); }
   const prev = el('dl', { class: 'preview' });
   for (const p of R.prev){ if (!p.a) continue; add(prev, el('dt', null, p.a), vtext('dd', K(S, 'B' + p.r))); }
-  const fullText = () => { const t = String(g('Report!B81') || ''), ql = [qualReport(), periReport(), cardReport(), rvStrainReport(), embolismReport(), congenitalReport()].filter(Boolean).join('\n\n'); return ql ? t + (t ? '\n\n' : '') + ql : t; };
+  const fullText = () => { const t = addDiaLine(String(g('Report!B81') || ''), true), ql = [qualReport(), periReport(), cardReport(), rvStrainReport(), embolismReport(), congenitalReport()].filter(Boolean).join('\n\n'); return ql ? t + (t ? '\n\n' : '') + ql : t; };
   const full = el('pre', { class: 'full', tabindex: 0 }); bind(() => { full.textContent = fullText(); });
   add(root, el('p', { class: 'lead' }, 'Structured to the ASE 2025 reporting standard. Fill in the details once per study; the measurements come from the other pages.'),
     el('div', { class: 'rep' }, form, el('div', { style: 'display:grid;gap:18px' }, sumCard,
@@ -3947,6 +4353,7 @@ page('guide', 'Guide', 'ref', root => {
     ['Wall motion', 'Score each of the 16 segments from 1 to 4 (normal, hypokinetic, akinetic, dyskinetic) by clicking it on any drawing or in the table. The wall-motion score index, territory counts and the drawings update together and flow into the report. The apical cap, segment 17, is not scored.'],
     ['Age and sex', 'Sex-specific cut-offs are used for LV size, wall thickness, mass, volumes, LVEF, atrial and RV size and the aorta; a blank sex uses the male cut-offs. Age changes the ASE 2025 e′ and E/A cut-offs automatically once the age is entered (set on the Diastology page: Auto, Y or N); the Echo page ranges and the 2016 algorithm are not age-adjusted.'],
     ['Diastology', 'One page for both guidelines: the shared measurements, the ASE 2025 work-up (dysfunction, left atrial pressure and grade, special populations, exercise echo, H2FPEF, age-specific ranges) and the ASE/EACVI 2016 algorithm, with a short list of where they differ for this patient. Choose there which guideline the report line uses.'],
+    ['Indeterminate diastology', 'When the ASE 2025 result for the population in use is indeterminate (or the grade is left open), a panel on the Diastology page and in the Echo diastolic section lists what is already counted and what is missing. For each missing finding it runs the algorithm on test values on either side of its cut-off and shows the result each would give, marks which findings would settle it alone (or which pairs would), and gives the next step from the guideline: additional then supplemental variables, the population-specific measurements, and a diastolic exercise echocardiogram for symptomatic patients. One line saying what would classify it is added under the diastolic line of the summary statement and the full report.'],
     ['Prosthetic valves', 'ASE 2024 guideline: aortic, mitral, tricuspid and pulmonary prostheses, with stenosis grading, patient–prosthesis mismatch and regurgitation. Results feed the report.'],
     ['Calculators', 'Sixteen calculators that start from the study values, plus a diastology calculator that changes its inputs with the population chosen. A what-if number overrides one input in that calculator only.'],
     ['Congenital', 'A page for adults with congenital heart disease: segmental anatomy, then atrial and ventricular septal defects, patent duct, bicuspid valve, subaortic stenosis, coarctation and left superior vena cava, each with the items the reporting standard asks for. Repaired and complex lesions are recorded and flagged for referral to an adult congenital centre.'],
