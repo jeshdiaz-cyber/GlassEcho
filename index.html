@@ -680,6 +680,8 @@ td.dd{background:color-mix(in srgb,var(--warn-bg) 55%,transparent)}
 .brand .btag{display:block; margin-top:4px; font:600 11.5px var(--head); letter-spacing:0; white-space:nowrap; color:var(--accent)} .brand span{line-height:1.35}
 .brand b .gl{font-weight:300; font-size:inherit; color:inherit} .brand b{color:var(--ink)}
 @media (max-width:560px){ .getitle{gap:12px} .getitle svg{width:58px; height:58px} .gew{font-size:28px} }
+.trj-row,.ivcs-row{border-top:0}
+.chip.faint{background:transparent; border:1px dashed var(--line-2); color:var(--muted); font-style:italic}
 </style>
 </head>
 <body>
@@ -2723,14 +2725,14 @@ function diaStrip(pop){
   const band = (k, lo, hi) => () => { const x = num(k); return x == null ? null : x < lo ? 0 : x > hi ? 1 : 'mid'; };
   const eKeys = [E+'B183', E+'B184'], eeKeys = [E+'B190', E+'B191', E+'B192'];
   const eeV = () => { const a = fmt(E+'B190').t, s = fmt(E+'B191').t; return a ? 'avg ' + a : s ? 'sept ' + s : fmt(E+'B192').t ? 'lat ' + fmt(E+'B192').t : ''; };
-  const trV = () => { const t = fmt(E+'B186').t, p = fmt(D+'B27').t; return typeof g(PASP_IN) === 'number' ? (t ? t + ' m/s · ' : '') + 'PASP ' + p + ' entered' : t ? t + ' m/s' : p ? 'PASP ' + p : ''; };
+  const trV = () => { const t = fmt(E+'B186').t, p = fmt(D+'B27').t; return typeof g(PASP_IN) === 'number' ? (t ? t + ' m/s · ' : '') + 'PASP ' + p + ' entered' : t ? t + ' m/s' : p ? 'PASP ' + p : trjWhy(); };
   const trAny = (cv, cp) => () => { const t = num(E+'B186'), p = num(D+'B27'); if (t == null && p == null) return null; return (t != null && t > cv) || (p != null && p > cp) ? 1 : 0; };
   const lars = c => L('LA strain', [D+'B34'], () => { const x = num(D+'B34'); return x == null ? null : x <= c ? 1 : 0; }, val(D+'B34', '%'));
   const larsLt = c => L('LA strain', [D+'B34'], lt(D+'B34', c), val(D+'B34', '%'));
   const ivrt = c => L('IVRT', [D+'B42'], lt(D+'B42', c), val(D+'B42', ' ms'));
   const ara = L('Ar−A', [D+'B41'], ge(D+'B41', 30), val(D+'B41', ' ms'));
   const avgEE = c => L('E/e′', [E+'B190'], gt(E+'B190', c), () => fmt(E+'B190').t ? 'avg ' + fmt(E+'B190').t : '');
-  const tr28 = L('TR', [E+'B186'], gt(E+'B186', 2.8), val(E+'B186', ' m/s'));
+  const tr28 = L('TR', [E+'B186'], gt(E+'B186', 2.8), () => fmt(E+'B186').t ? fmt(E+'B186').t + ' m/s' : trjWhy());
   const lavi = c => L('LAVi', [E+'B193'], gt(E+'B193', c), val(E+'B193'));
   const ea = (st) => L('E/A', [E+'B188'], st || (() => null));
   const S = (title, lamps, note) => ({ title, lamps, note });
@@ -2870,6 +2872,59 @@ function paspEchoNote(){ bind(() => {
 }); }
 
 
+
+/* ---------- TR jet status and PASP entered on the Echo page (added in this web version) ----------
+   When the TR jet cannot be measured, say so (it is reported instead of "not assessed"), and an estimated PASP/RVSP
+   can be typed in section 13; it is the same value as the PASP box on the Diastology page and replaces the calculated one everywhere. */
+const TRJ = 'Echo!TRJ', TRJ_OPTS = ['Measured', 'Not measurable (inadequate jet)', 'No TR jet'];
+const IVCS = 'Echo!IVCS', IVCS_OPTS = ['Visualised', 'Not well visualised'];
+Object.assign(DEFAULTS, { [IVCS]: null });
+const ivcOff = () => /^Not well/.test(String(g(IVCS) || ''));
+Object.assign(DEFAULTS, { [TRJ]: null });
+const trjOff = () => /^Not measurable|^No TR/.test(String(g(TRJ) || ''));
+const trjWhy = () => /^No TR/.test(String(g(TRJ) || '')) ? 'no TR jet' : /^Not measurable/.test(String(g(TRJ) || '')) ? 'inadequate TR jet' : '';
+{ const f0 = FORMULAS['Report!B74']; FORMULAS['Report!B74'] = () => { const r = f0(), w = trjWhy(); if (!w || typeof r !== 'string') return r;
+    return typeof g(PASP_IN) === 'number' ? r.replace(/(Estimated PASP \d+ mmHg)/, '$1 (entered; ' + w + ')') : r.replace('unable to assess (no adequate TR signal)', 'not estimated (' + w + ')'); }; }
+{ const f0 = FORMULAS['Report!B74']; FORMULAS['Report!B74'] = () => { let r = f0(); if (typeof r !== 'string') return r;
+    if (ivcOff() && typeof g('Echo!B225') !== 'number') r = r.replace(/^IVC [^→]*→ estimated RA pressure unable to assess/, 'IVC not well visualised; RA pressure not estimated');
+    const v = g('Echo!B186');
+    if (typeof v === 'number' && typeof g('Echo!B226') !== 'number') r = r.replace('unable to assess (no adequate TR signal)', 'not estimated (RA pressure unknown); peak TR gradient ' + Math.round(4 * v * v) + ' mmHg');
+    return r; }; }
+function ivcRow(){
+  for (const r of document.querySelectorAll('.prow[data-input="Echo!B223"]')){
+    if (r.nextElementSibling && r.nextElementSibling.classList.contains('ivcs-row')) continue;
+    const f = field(IVCS, { t: 'list', o: IVCS_OPTS, bl: 1 }), note = el('p', { class: 'p-ref' });
+    const row = el('div', { class: 'prow ivcs-row', data: { input: IVCS, view: r.dataset.view || '' } },
+      el('div', { class: 'p-label' }, el('label', { for: f.id }, 'IVC visualisation'), el('p', { class: 'p-ref' }, 'Choose "Not well visualised" when the IVC could not be measured; the report then says the RA pressure was not estimated.'), note),
+      el('div', { class: 'p-val' }, f.node), el('div', { class: 'p-int' }));
+    bind(() => { note.textContent = ivcOff() ? (typeof g('Echo!B223') === 'number' ? 'An IVC diameter is also entered; it is still used.' : 'RA pressure and the calculated PASP stay blank; an estimated PASP can still be entered in section 13.') : ''; });
+    r.after(row);
+  }
+}
+function trjRows(){ ivcRow();
+  for (const r of document.querySelectorAll('.prow[data-input="Echo!B186"]')){
+    if (r.nextElementSibling && r.nextElementSibling.classList.contains('trj-row')) continue;
+    const f = field(TRJ, { t: 'list', o: TRJ_OPTS, bl: 1 }), note = el('p', { class: 'p-ref' });
+    const row = el('div', { class: 'prow trj-row', data: { input: TRJ, view: r.dataset.view || '' } },
+      el('div', { class: 'p-label' }, el('label', { for: f.id }, 'TR jet'), el('p', { class: 'p-ref' }, 'Choose "Not measurable" or "No TR jet" when there is no usable TR velocity; the report then says so instead of "not assessed".'), note),
+      el('div', { class: 'p-val' }, f.node), el('div', { class: 'p-int' }));
+    bind(() => { const v = String(g(TRJ) || ''), has = typeof g('Echo!B186') === 'number';
+      note.innerHTML = ''; if (trjOff()) note.append(has ? 'A TR velocity is also entered; it is still used. ' : '', 'Enter an estimated PASP/RVSP, if there is one, in ', el('a', { href: '#echo-pasp-in' }, 'section 13'), '.'); });
+    r.after(row);
+  }
+  const p = document.getElementById('echo-r226');
+  if (p && !document.getElementById('echo-pasp-in')){
+    const f = field(PASP_IN, { t: 'num', mn: 10, mx: 150 }, { unit: 'mmHg' }), st = el('p', { class: 'p-ref' });
+    const use = el('button', { class: 'btn small', type: 'button', onclick: () => setIn(PASP_IN, null) }, 'Use calculated');
+    const row = el('div', { class: 'prow', id: 'echo-pasp-in', data: { input: PASP_IN, view: p.dataset.view || '' } },
+      el('div', { class: 'p-label' }, el('label', { for: f.id }, 'PASP / RVSP — entered'), el('p', { class: 'p-ref' }, 'Optional. Type an estimated PASP when TR velocity cannot be measured (for example from the PR end-diastolic velocity, or as reported), or to replace the calculated value. Same box as on the Diastology page.'), st),
+      el('div', { class: 'p-val' }, f.node, el('span', { class: 'unit' }, 'mmHg'), f.msg), el('div', { class: 'p-int' }, use));
+    bind(() => { const c = paspCalc(), e = g(PASP_IN), on = typeof e === 'number'; use.hidden = !on; row.classList.toggle('pasp-own', on);
+      f.node.setAttribute('placeholder', c == null ? 'type PASP' : paspRound(c));
+      st.textContent = on ? 'Used everywhere instead of ' + (c == null ? 'a calculated value (none: ' + (trjWhy() || 'TR velocity or RAP missing') + ').' : 'the calculated ' + paspRound(c) + ' mmHg.') : c == null ? (trjWhy() ? 'No calculated PASP: ' + trjWhy() + '.' : '') : 'Calculated ' + paspRound(c) + ' mmHg is used unless you type a value.'; });
+    p.after(row);
+  }
+}
 
 /* ---------- Reading time, coded indication and image quality, protocol items (added in this web version) ----------
    Reading time is kept as a duration in seconds (no clock times are saved with the study).
@@ -3097,6 +3152,10 @@ const vnInputs = v => v._in || (v._in = MODEL.echo.filter(r => r.in && r.r >= VN
   .concat(QUAL.filter(q => VN_ROWS[v.k][2].test(q.valve)).flatMap(q => q.items.map(it => 'Qual!' + it.id))));
 const vnBlank = v => v.base.every(k => { const x = g(k); return x == null || x === '' || isErr(x); }) && vnInputs(v).every(k => INPUTS[k] == null || INPUTS[k] === '');
 const vnOn = v => INPUTS[v.k] === 'Normal' && vnBlank(v);
+/* a single lesion (e.g. aortic regurgitation) with no grade, even when the other lesion of that valve was measured */
+const vnLesBlank = (v, i) => { const x = g(v.base[i]); return x == null || x === '' || isErr(x); };
+const vnSome = v => vnBlank(v) || v.d.some((k, i) => vnLesBlank(v, i));
+const vnBlankList = () => VN.flatMap(v => vnBlank(v) ? [v.name.replace(' valve', '').toLowerCase() + ' valve'] : v.d.map((k, i) => vnLesBlank(v, i) ? v.chip[i].replace(/^No /, '') : null).filter(Boolean));
 for (const v of VN){
   const f0 = FORMULAS[v.rep]; FORMULAS[v.rep] = () => { if (vnOn(v)) return 'Structurally and functionally normal; no stenosis or regurgitation.'; const r = f0();
     return INPUTS[v.k] === 'Normal' && typeof r === 'string' ? r.replace('→ not assessed', '→ no stenosis').replace('Stenosis: none assessed', 'Stenosis: none').replace('Regurgitation: not assessed', 'Regurgitation: none') : r; };
@@ -3113,17 +3172,23 @@ function valveNormalBox(){
   btn.addEventListener('click', () => {
     const marked = VN.filter(v => INPUTS[v.k] === 'Normal');
     if (marked.length){ for (const v of marked) INPUTS[v.k] = null; }
-    else { for (const v of VN) if (vnBlank(v)) INPUTS[v.k] = 'Normal'; }
+    else { for (const v of VN) if (vnSome(v)) INPUTS[v.k] = 'Normal'; }
     save(); refresh();
   });
   bind(() => {
-    const marked = VN.filter(v => INPUTS[v.k] === 'Normal'), blank = VN.filter(vnBlank);
-    btn.textContent = marked.length ? 'Undo normal valves' : 'Mark unassessed valves normal';
+    const marked = VN.filter(v => INPUTS[v.k] === 'Normal'), blank = vnBlankList();
+    btn.textContent = marked.length ? 'Undo normal valves' : 'Mark ungraded valves normal';
     btn.disabled = !marked.length && !blank.length;
-    note.textContent = marked.length ? marked.filter(vnOn).map(v => v.name.replace(' valve', '')).join(', ') + ' marked structurally and functionally normal. Anything measured on the Echo page takes precedence.'
-      : blank.length ? 'Not assessed: ' + blank.map(v => v.name.replace(' valve', '').toLowerCase()).join(', ') + '. One click reports them as structurally and functionally normal.' : 'Every valve has an assessment.';
+    const whole = marked.filter(vnOn).map(v => v.name.replace(' valve', '')), part = marked.filter(v => !vnOn(v)).flatMap(v => v.d.map((k, i) => vnLesBlank(v, i) ? v.chip[i].replace(/^No /, '') : null).filter(Boolean));
+    note.textContent = marked.length ? [whole.length ? whole.join(', ') + ' marked structurally and functionally normal' : '', part.length ? 'no ' + part.join(', no ') + ' (not graded, reported as absent)' : ''].filter(Boolean).join('; ') + '. Anything measured on the Echo page takes precedence.'
+      : blank.length ? 'Not graded yet: ' + blank.join(', ') + '. One click reports them as none, trivial or physiologic.' : 'Every valve has a grade.';
   });
-  return el('div', { class: 'vnbox' }, btn, note);
+  const pe = el('button', { class: 'btn small', type: 'button' }), peNote = el('span', { class: 'p-ref' });
+  pe.addEventListener('click', () => { const v = INPUTS['Echo!B258']; if (v === 0) setIn('Echo!B258', null); else if (v == null || v === '') setIn('Echo!B258', 0); });
+  bind(() => { const v = INPUTS['Echo!B258'], set0 = v === 0, other = typeof v === 'number' && v > 0;
+    pe.textContent = set0 ? 'Undo no effusion' : 'No pericardial effusion'; pe.disabled = other;
+    peNote.textContent = set0 ? 'Pericardial effusion: none (0 mm), compared with the attending as your read.' : other ? 'Effusion measured on the Echo page: ' + v + ' mm.' : 'Pericardium not entered yet. One click records no effusion.'; });
+  return el('div', null, el('div', { class: 'vnbox' }, btn, note), el('div', { class: 'vnbox', style: 'border-top:0; margin-top:6px; padding-top:0' }, pe, peNote));
 }
 function iqSummaryRow(){
   const t = el('span');
@@ -4048,6 +4113,8 @@ page('overview', 'Study overview', 'start', root => {
   const dl = el('dl', { class: 'glance chips' });
   for (const [t, kd, kv, u] of items){
     const dd = el('dd', null, chip(kd));
+    if (['Echo!D96', 'Echo!D110', 'Echo!D125', 'Echo!D144', 'Echo!D157'].includes(kd)){ const c = dd.firstChild;
+      bind(() => { if (!fmt(kd).t && !fmt(kd).e){ c.textContent = /D96|D125/.test(kd) ? 'None (not graded)' : 'None or trivial (not graded)'; c.className = 'chip faint'; c.title = 'No grade entered; use “Mark ungraded valves normal” to report it as none, trivial or physiologic.'; } }); }
     if (t === 'LVEF'){
       const sel = el('select', { class: 'fld efr', 'aria-label': 'LVEF range for the report' }, EF_BINS.map(b => el('option', { value: b }, efText(b)))), tag = el('span', { class: 'p-ref efr-t' });
       sel.addEventListener('change', () => { INPUTS['Echo!EFRb'] = efAutoBin(); setIn(EFR, sel.value); });
@@ -5247,7 +5314,7 @@ const regGrade = t => { t = String(t || '').toLowerCase(); if (!t) return '';
   if (/mild(-| to |–)moderate/.test(t)) return 'Mild–moderate';
   if (/severe/.test(t) && !/at least moderate/.test(t)) return 'Severe';
   if (/moderate/.test(t)) return 'Moderate'; if (/mild/.test(t)) return 'Mild';
-  if (/^no |none|trace|physiolog/.test(t)) return 'None/trace'; return ''; };
+  if (/^no |none|trace|trivial|physiolog|minimal/.test(t)) return 'None/trace'; return ''; };
 const stenGrade = t => { t = String(t || '').toLowerCase(); if (!t) return '';
   if (/severe/.test(t) && !/no significant/.test(t)) return 'Severe'; if (/moderate/.test(t)) return 'Moderate'; if (/mild/.test(t)) return 'Mild';
   if (/^no |none|no significant|sclerosis/.test(t)) return 'None'; return ''; };
@@ -5291,15 +5358,19 @@ const ATT = [
   { id: 'ar', grp: 'm', label: 'Aortic regurgitation', scale: REG6, ord: true, mine: () => regGrade(s0('Echo!D110')) || 'None/trace', auto: () => !regGrade(s0('Echo!D110')) },
   { id: 'mr', grp: 'm', label: 'Mitral regurgitation', scale: REG6, ord: true, mine: () => regGrade(s0('Echo!D144')) || 'None/trace', auto: () => !regGrade(s0('Echo!D144')) },
   { id: 'tr', grp: 'm', label: 'Tricuspid regurgitation', scale: TR8, ord: true, mine: () => regGrade(s0('Echo!D157')) || 'None/trace', auto: () => !regGrade(s0('Echo!D157')) },
-  { id: 'ph', grp: 'm', label: 'Pulmonary hypertension', scale: PH_CATS, ord: true,
-    mine: () => { const p = g('Echo!B226'); if (typeof p === 'number') return phGrade(p); return /^Low/.test(s0('Echo!B238')) ? 'Absent' : ''; } },
+  { id: 'ph', grp: 'm', label: 'Pulmonary hypertension', scale: PH_CATS.concat(['Not estimated']), ordScale: PH_CATS, ord: true,
+    mine: () => { const p = g('Echo!B226'); if (typeof p === 'number') return phGrade(p); if (trjOff()) return 'Not estimated'; return /^Low/.test(s0('Echo!B238')) ? 'Absent' : ''; } },
+  { id: 'rvsp', grp: 'm', label: 'RVSP / PASP (mmHg)', key: 'Att!rvsp', numeric: true, scale: ['Not estimated'], ord: false,
+    mine: () => { const p = g('Echo!B226'); return typeof p === 'number' ? String(Math.round(p)) : trjOff() || ivcOff() ? 'Not estimated' : ''; },
+    att: o => { const t = String(o['Att!rvsp'] == null ? '' : o['Att!rvsp']).trim(); if (!t) return ''; if (/not|unable|n\/?e\b|^-$/i.test(t)) return 'Not estimated'; const m = /\d{1,3}(?:\.\d)?/.exec(t); return m ? String(Math.round(+m[0])) : ''; },
+    cmp: (m, a) => { if (m === 'Not estimated' || a === 'Not estimated') return m === a ? 'agree' : 'differ'; const d = Math.abs(+m - +a); return d <= 5 ? 'agree' : d <= 10 ? 'near' : 'differ'; } },
   { id: 'peff', grp: 'm', label: 'Pericardial effusion', scale: ['None', 'Small', 'Moderate', 'Large'], ord: true, mine: () => { const t = s0('Echo!D258'); return /^No/.test(t) ? 'None' : /^Small/.test(t) ? 'Small' : /^Moderate/.test(t) ? 'Moderate' : /^Large/.test(t) ? 'Large' : ''; } },
   /* optional */
   { id: 'lvsize', grp: 'm', opt: true, label: 'LV size', scale: ['Normal', 'Mildly dilated', 'Moderately dilated', 'Severely dilated'], ord: true, mine: () => { const t = s0('Echo!D24'); return /Below|Normal/.test(t) ? 'Normal' : t; } },
   { id: 'lvgeo', grp: 'm', label: 'LV geometry', scale: ['Normal geometry', 'Concentric remodeling', 'Concentric hypertrophy', 'Eccentric hypertrophy'], ord: false, mine: () => s0('Echo!B34') },
   { id: 'lasize', grp: 'm', opt: true, label: 'LA size', scale: ['Normal', 'Mildly dilated', 'Moderately dilated', 'Severely dilated'], ord: true, mine: () => s0('Echo!D193').replace(' LA', '') },
   { id: 'rvsize', grp: 'm', opt: true, label: 'RV size', scale: ['Normal', 'Dilated'], ord: true, mine: () => { const t = s0('Echo!D210'); return /Dilated/.test(t) ? 'Dilated' : /Normal/.test(t) ? 'Normal' : ''; } },
-  { id: 'rap', grp: 'm', label: 'RA pressure', scale: ['3 mmHg', '8 mmHg', '15 mmHg'], ord: true, mine: () => { const n = g('Echo!B225'); return typeof n === 'number' ? Math.round(n) + ' mmHg' : ''; } },
+  { id: 'rap', grp: 'm', label: 'RA pressure', scale: ['3 mmHg', '8 mmHg', '15 mmHg', 'Not visualised'], ordScale: ['3 mmHg', '8 mmHg', '15 mmHg'], ord: true, mine: () => { const n = g('Echo!B225'); return typeof n === 'number' ? Math.round(n) + ' mmHg' : ivcOff() ? 'Not visualised' : ''; } },
   { id: 'ms', grp: 'm', label: 'Mitral stenosis', scale: STEN4, ord: true, mine: () => stenGrade(s0('Echo!D125')) || 'None', auto: () => !stenGrade(s0('Echo!D125')) },
   { id: 'aorta', grp: 'm', label: 'Aorta', scale: ['Normal', 'Dilated'], ord: true, mine: () => { const t = [s0('Echo!D242'), s0('Echo!D244')].join(' '); return /dilat|aneurysm/i.test(t) ? 'Dilated' : /normal/i.test(t) ? 'Normal' : ''; } },
   /* prosthetic valves: one row per prosthesis present */
@@ -5324,7 +5395,7 @@ function diaMatch(att, g16, g25){
 const ATT_GROUPS = [['lv', 'Left ventricle'], ['valves', 'Valves'], ['d', 'Diastolic function and left atrium'], ['rh', 'Right heart and pulmonary pressures'], ['ap', 'Aorta and pericardium'], ['a', 'Actionable findings']];
 { const ORDER = [['lvsize', 'lv'], ['lvgeo', 'lv'], ['lvef_cat', 'lv'], ['lvef_bin', 'lv'], ['wm', 'lv'],
     ['as', 'valves'], ['ar', 'valves'], ['ms', 'valves'], ['mr', 'valves'], ['tr', 'valves'], ['pv_ao', 'valves'], ['pv_mi', 'valves'], ['pv_tr', 'valves'], ['pv_pu', 'valves'],
-    ['dia', 'd'], ['lasize', 'd'], ['rvsize', 'rh'], ['rvf', 'rh'], ['rap', 'rh'], ['ph', 'rh'], ['aorta', 'ap'], ['peff', 'ap'], ['crit', 'a'], ['cm', 'a']];
+    ['dia', 'd'], ['lasize', 'd'], ['rvsize', 'rh'], ['rvf', 'rh'], ['rap', 'rh'], ['ph', 'rh'], ['rvsp', 'rh'], ['aorta', 'ap'], ['peff', 'ap'], ['crit', 'a'], ['cm', 'a']];
   const pos = new Map(ORDER.map(([id], i) => [id, i])); for (const it of ATT){ const o = ORDER.find(x => x[0] === it.id); if (o) it.grp = o[1]; delete it.opt; }
   ATT.sort((a, b) => (pos.has(a.id) ? pos.get(a.id) : 99) - (pos.has(b.id) ? pos.get(b.id) : 99)); }
 const attKey = it => it.key || 'Att!' + (it.input || it.id);
@@ -5333,19 +5404,19 @@ Object.assign(DEFAULTS, { 'Att!critset': null, 'Att!crit': null, 'Att!code': nul
    'report' (built on measurements prefilled from the official report). The agreement can be shown with all items or with entered items only. */
 Object.assign(DEFAULTS, { 'Meta!fromrep': null });
 const ATT_DEPS = { lvsize: [[22, 29], [37, 41]], lvgeo: [[22, 34]], lvef_cat: [[36, 45]], lvef_bin: [[36, 45]], as: [[50, 96]], ar: [[98, 110]], ms: [[112, 125]], mr: [[127, 144]], tr: [[146, 157], [186, 186]],
-  dia: [[179, 201]], lasize: [[185, 185], [193, 193], [204, 204]], rvsize: [[209, 213]], rvf: [[214, 220]], rap: [[222, 225]], ph: [[186, 186], [222, 238]], aorta: [[240, 255]], peff: [[257, 259]] };
+  dia: [[179, 201]], rvsp: [[186, 186], [222, 238]], lasize: [[185, 185], [193, 193], [204, 204]], rvsize: [[209, 213]], rvf: [[214, 220]], rap: [[222, 225]], ph: [[186, 186], [222, 238]], aorta: [[240, 255]], peff: [[257, 259]] };
 const ATT_VN = { as: 'Qual!VN_AV', ar: 'Qual!VN_AV', ms: 'Qual!VN_MV', mr: 'Qual!VN_MV', tr: 'Qual!VN_TV' };
 const repKeys = () => String(INPUTS['Meta!fromrep'] || '').split('|').filter(Boolean);
 function attSrc(it){
   if (it.auto && it.auto()) return 'default';
-  const vk = ATT_VN[it.id]; if (vk){ const v = VN.find(x => x.k === vk); if (v && vnOn(v)) return 'default'; }
+  /* a valve marked normal with the overview button is the reader's own call (none, trivial or physiologic), so it counts as entered */
   const R = ATT_DEPS[it.id]; if (!R) return 'entered';
   for (const k of repKeys()){ const m = /^Echo!B(\d+)$/.exec(k);
     if (m && R.some(([a, b]) => +m[1] >= a && +m[1] <= b)) return 'report';
-    if ((it.id === 'dia' && /^Diastology 2025!/.test(k)) || (it.id === 'ph' && k === 'Diastology 2025!B27')) return 'report'; }
+    if ((it.id === 'dia' && /^Diastology 2025!/.test(k)) || ((it.id === 'ph' || it.id === 'rvsp') && k === 'Diastology 2025!B27')) return 'report'; }
   return 'entered';
 }
-const SRC_TXT = { default: 'assumed, not assessed', report: 'from the official report' };
+const SRC_TXT = { default: 'not graded: none or trivial assumed', report: 'from the official report' };
 const ATT_OPT = 'echo-workbook-att-optional';
 const attOptOn = () => true;
 const attItems = () => ATT.filter(i => (!i.opt || attOptOn()) && (!i.present || i.present() || INPUTS[attKey(i)]));
@@ -5355,6 +5426,7 @@ const attVal = (it, o) => { const v = it.att ? it.att(o) : String(o[attKey(it)] 
 /* compare one item: 'agree' | 'near' (one step on an ordered scale) | 'differ' | '' (not comparable) */
 function attCmp(it, m, a){
   if (!m || !a || a === 'Not reported') return '';
+  if (it.cmp) return it.cmp(m, a);
   if (m === a) return 'agree';
   /* "two-level" items: normal/none vs abnormal first; a different territory or type counts as near */
   if (it.two){ const n0 = it.id === 'wm' ? 'Normal' : 'None'; return (m === n0) === (a === n0) ? 'near' : 'differ'; }
@@ -5396,13 +5468,16 @@ function attRecord(rec){
   const ins = recordInputs(rec); let r = null;
   if (ATT.some(it => attVal(it, ins)) ){
     r = withInputs(ins, () => ({ code: String(ins['Att!code'] || ''), when: Date.parse(rec.savedAt), items: Object.fromEntries(ATT.map(it => [it.id, [it.mine(), attVal(it, ins), attSrc(it)]])),
-      ef: [g('Echo!B43'), (efOfAtt(ins) || {}).n], dm: diaMatch(String(ins['Att!dia'] || ''), diaCatOf('Diastology 2025!G107'), diaCatOf('Diastology 2025!G108')) }));
+      ef: [g('Echo!B43'), (efOfAtt(ins) || {}).n], rv: [g('Echo!B226'), (v => /^\d+$/.test(v) ? +v : null)(attVal(ATT.find(i => i.id === 'rvsp'), ins))], dm: diaMatch(String(ins['Att!dia'] || ''), diaCatOf('Diastology 2025!G107'), diaCatOf('Diastology 2025!G108')) }));
   }
   ATTROWS.set(id, r); return r;
 }
 const srcOk = (s, only) => !only || !s || s === 'entered';
 function attAgreement(recs, only){
   return attStatItems().map(it => {
+    if (it.numeric){ const Q = recs.map(r => r.items[it.id] || []).filter(([m, a, s]) => srcOk(s, only) && m && a && a !== 'Not reported');
+      const n = Q.length, ex = Q.filter(([m, a]) => attCmp(it, m, a) === 'agree').length, nr = Q.filter(([m, a]) => attCmp(it, m, a) !== 'differ').length;
+      return { it, n, ex, nr, kk: null, how: 'agree within 5 mmHg; one step = within 10 mmHg' }; }
     const P = recs.map(r => r.items[it.id]).filter(([m, a, s]) => srcOk(s, only) && m && a && a !== 'Not reported' && (it.multi || (it.scale.includes(m) && it.scale.includes(a))));
     const n = P.length, ex = P.filter(([m, a]) => m === a).length, nr = P.filter(([m, a]) => attCmp(it, m, a) !== 'differ').length;
     let kk = null, how = '';
@@ -5436,11 +5511,13 @@ page('compare', 'Compare with attending', 'report', root => {
           else { const sp = el('span', { class: 'p-ref' }); bind(() => { const e = efOfAtt(INPUTS); sp.textContent = e ? EF_BINS[e.bin] + ' (from the LVEF typed above)' : 'From the LVEF typed above'; }); add(attCell, sp); }
         } else {
           if (it.multi){ const f = field(attKey(it), { t: 'multi', o: ['None'].concat(CRIT_CATS) }); add(attCell, f.node, el('p', { class: 'p-ref', style: 'margin-top:4px' }, 'Choose every finding the attending reported, or None.')); }
+          else if (it.numeric){ const f = field(attKey(it), { t: 'text' }); f.node.setAttribute('placeholder', 'e.g. 35, or not estimated'); f.node.style.maxWidth = '13em'; add(attCell, f.node, el('span', { class: 'p-ref', style: 'margin-left:8px' }, 'mmHg · agree within 5, one step within 10')); }
           else add(attCell, attSelect(attKey(it), it.scale.concat(['Not reported'])));
           if (false){ const w = attSelect('Att!crit_which', CRIT_CATS, 'Which finding'); const wrap = el('span', { style: 'margin-left:8px' }, w); bind(() => { wrap.hidden = INPUTS[attKey(it)] !== 'Yes'; }); add(attCell, wrap); }
         }
         bind(() => { const m = it.mine(), a = attVal(it, INPUTS), c = attCmp(it, m, a);
-          const sr = m ? attSrc(it) : ''; mine.textContent = m ? m + (SRC_TXT[sr] ? ' (' + SRC_TXT[sr] + ')' : it.id === 'lvef_bin' && !efChosen() ? ' (from the calculated LVEF)' : '') : 'Not assessed';
+          const sr = m ? attSrc(it) : '', vk = ATT_VN[it.id], vv = vk && VN.find(x => x.k === vk), mk = vv && INPUTS[vv.k] === 'Normal' && (vnOn(vv) || vnLesBlank(vv, { as: 0, ar: 1, ms: 0, mr: 1, tr: 0 }[it.id]));
+          mine.textContent = m ? m + (SRC_TXT[sr] ? ' (' + SRC_TXT[sr] + ')' : mk ? ' (marked normal: none, trivial or physiologic)' : it.id === 'lvef_bin' && !efChosen() ? ' (from the calculated LVEF)' : '') : 'Not assessed';
           mine.className = 'attm' + (sr === 'default' ? ' src-def' : sr === 'report' ? ' src-rep' : '');
 
           chipC.textContent = c === 'agree' ? 'Agree' : c === 'near' ? (it.multi ? 'Both found, different findings' : it.two ? 'Same call, different type' : 'One step apart') : c === 'differ' ? 'Differ' : '';
@@ -5546,6 +5623,9 @@ function parseReport(raw){
       else if (gw) set('Att!ph', gw, gw.toLowerCase() + ' pulmonary hypertension');
       else if (pm) set('Att!ph', phGrade(+pm[1]), 'PASP ' + pm[1] + ' mmHg');
     }
+    if (/(?:rvsp|pasp|pulmonary artery systolic pressure|right ventricular systolic pressure|pa systolic pressure)[^.]{0,60}(?:can ?not|could not|unable to|not able to)\s*(?:be\s*)?(?:estimated|assessed|measured|used|calculated)|(?:insufficient|inadequate|incomplete)\s+(?:tr|tricuspid regurgitation)\b/.test(lc)){ set('Att!ph', 'Not estimated', 'pulmonary pressure not estimated'); set('Att!rvsp', 'Not estimated', 'RVSP not estimated'); }
+    { const m = /(?:rvsp|pasp|pulmonary artery systolic pressure|right ventricular systolic pressure|pa systolic pressure)[^.\d]{0,40}(\d{2,3})\s*(?:mm|$|\.)/.exec(lc); if (m && +m[1] >= 10 && +m[1] <= 150) set('Att!rvsp', m[1], 'RVSP ' + m[1] + ' mmHg'); }
+    if (/\b(?:ivc|inferior vena cava)\b[^.]{0,50}\bnot (?:well )?(?:visuali[sz]ed|seen|imaged|assessed|visible)|\bnot (?:well )?(?:visuali[sz]ed|seen)[^.]{0,20}\b(?:ivc|inferior vena cava)\b/.test(lc)) set('Att!rap', 'Not visualised', 'IVC not visualised');
     /* pericardial effusion */
     { const k = lc.search(/pericardial effusion|effusion/); if (k >= 0 && /pericard/.test(lc)){
       if (pNeg(c, k)) set('Att!peff', 'None', 'no pericardial effusion');
@@ -5843,6 +5923,12 @@ function parseMeasurements(raw){
     }
     if (best){ out[key] = best.x; src[key] = best.s; used.push([best.a, best.b]); }
   }
+  if (out['Echo!B223'] == null && /\b(?:ivc|inferior vena cava)\b[^\n.]{0,50}\bnot (?:well )?(?:visuali[sz]ed|seen|imaged|assessed|visible)|\bnot (?:well )?(?:visuali[sz]ed|seen)[^\n.]{0,20}\b(?:ivc|inferior vena cava)\b/.test(low)) out[IVCS] = 'Not well visualised';
+  /* TR jet not measurable or absent, when no TR velocity was found */
+  if (out['Echo!B186'] == null){
+    if (/(?:rvsp|pasp|pa systolic pressure|right ventricular systolic pressure)[^\n.]{0,80}(?:can ?not|could not|unable to|not able to|is not|was not)\s*(?:be\s*)?(?:estimated|assessed|measured|used|calculated)|(?:insufficient|inadequate|incomplete|poor|suboptimal)\s+tr\b|\btr\s*(?:jet|signal|envelope|doppler)[^\n.]{0,20}(?:insufficient|inadequate|incomplete|not adequate|not seen)/.test(low)) out[TRJ] = 'Not measurable (inadequate jet)';
+    else if (/\bno (?:tr|tricuspid regurgitation)\b(?!\s*(?:v|vel|velocity|peak))/.test(low)) out[TRJ] = 'No TR jet';
+  }
   /* indication and image quality from the report header */
   { const m = /\bindications?\s*:?\s*([^\n]{2,160})/.exec(low); if (m){ const t = m[1];
       const map = [[/syncope|presyncope/, 'Syncope or presyncope'], [/chest pain|angina|ischemi/, 'Chest pain or suspected ischemia'], [/stroke|\btia\b|\bcva\b|embol(?!.*pulmonary)/, 'Stroke, transient ischemic attack or embolic event'],
@@ -5930,7 +6016,7 @@ function myoAutoNote(){
   row.classList.toggle('autofill', !v && (has || why.length));
   }
 }
-bind(myoAutoNote);
+bind(myoAutoNote); bind(trjRows); window.addEventListener('hashchange', () => setTimeout(trjRows, 0));
 { const b = document.getElementById('brand'), o = b && b.querySelector('svg'); if (o) o.replaceWith(geMark(38)); } window.addEventListener('hashchange', () => setTimeout(myoAutoNote, 0));
 
 /* the header button: Save study's neighbour */
@@ -5954,7 +6040,7 @@ function attDashboard(list){
     for (const g0 of ATT_GROUPS){ const rows = A.filter(x => x.it.grp === g0[0]); if (!rows.length) continue;
       add(tb, el('tr', { class: 'attgh' }, el('td', { colspan: 6 }, g0[1])));
       for (const x of rows) add(tb, el('tr', null, el('td', null, x.it.label), el('td', { class: 'sc' }, String(x.n)),
-        el('td', { class: 'sc' }, x.n ? Math.round(100 * x.ex / x.n) + '%' : '—'), el('td', { class: 'sc' }, x.n && x.it.ord ? Math.round(100 * x.nr / x.n) + '%' : '—'),
+        el('td', { class: 'sc', title: x.it.numeric ? 'within 5 mmHg' : '' }, x.n ? Math.round(100 * x.ex / x.n) + '%' : '—'), el('td', { class: 'sc', title: x.it.numeric ? 'within 10 mmHg' : '' }, x.n && (x.it.ord || x.it.numeric) ? Math.round(100 * x.nr / x.n) + '%' : '—'),
         el('td', { class: 'sc', title: x.how }, x.kk ? x.kk.k.toFixed(2) + (x.kk.lo != null ? ' (' + x.kk.lo.toFixed(2) + ' to ' + x.kk.hi.toFixed(2) + ')' : '') : x.n && /not defined/.test(x.how) ? el('span', { class: 'p-ref' }, 'n/a, one category') : '—'),
         el('td', null, x.kk ? el('span', { class: 'chip ' + (x.kk.k > 0.6 ? 'ok' : x.kk.k > 0.4 ? 'warn' : 'bad') }, kLabel(x.kk.k)) : null)));
     }
@@ -5970,12 +6056,16 @@ function attDashboard(list){
     const nAll = mix.entered + mix.default + mix.report, cAll = conc(false), cEnt = conc(true);
     const pc = k => agreeBy[k][0] ? Math.round(100 * agreeBy[k][1] / agreeBy[k][0]) + '% agree' : '';
     const provLine = nAll ? el('div', { class: 'attprov' },
-      el('p', null, el('b', null, 'Where your side came from: '), ['entered', 'default', 'report'].filter(k => mix[k]).map(k => (k === 'entered' ? 'entered by you ' : k === 'default' ? 'assumed (valve not assessed or marked normal) ' : 'from the official report ') + pct(mix[k], nAll) + '% (' + mix[k] + ' pairs' + (pc(k) ? ', ' + pc(k) : '') + ')').join(' · ') + '.'),
+      el('p', null, el('b', null, 'Where your side came from: '), ['entered', 'default', 'report'].filter(k => mix[k]).map(k => (k === 'entered' ? 'entered by you ' : k === 'default' ? 'assumed none or trivial (valve not graded, button not used) ' : 'from the official report ') + pct(mix[k], nAll) + '% (' + mix[k] + ' pairs' + (pc(k) ? ', ' + pc(k) : '') + ')').join(' · ') + '.'),
       el('p', null, el('b', null, 'Mean concordance: '), (cAll != null ? cAll + '% with all items' : '—') + ' · ' + (cEnt != null ? cEnt + '% with entered items only' : 'no entered items yet') + '. ',
         el('span', { class: 'p-ref' }, 'A gap between the two means defaults or report values are lifting the agreement.'))) : null;
     add(out, el('p', { class: 'qbig' }, tot.length ? Math.round(100 * tot.reduce((s, v) => s + v, 0) / tot.length) + '%' : '—', el('span', null, ' mean concordance per study' + (only ? ', entered items only' : '') + ' · ' + R.length + ' studies with an attending read')), provLine,
       el('div', { class: 'tbl', style: 'margin:0' }, el('table', { class: 'atttbl' }, el('thead', null, el('tr', null, ['Item', 'Pairs', 'Exact', 'Within one step', 'κ (95% CI)', ''].map(t => el('th', null, t)))), tb)),
       el('p', { class: 'p-ref', style: 'margin-top:8px' }, efLine),
+      el('p', { class: 'p-ref' }, (() => { const rv = R.map(r => r.rv || []).filter(([a, b]) => typeof a === 'number' && typeof b === 'number');
+        if (rv.length < 3) return 'RVSP as numbers: needs your PASP and the attending’s RVSP in at least 3 studies.';
+        const d = rv.map(([a, b]) => a - b), md = d.reduce((s, v) => s + v, 0) / d.length, sd = Math.sqrt(d.reduce((s, v) => s + (v - md) ** 2, 0) / (d.length - 1)), icc = iccA1(rv.map(x => x[0]), rv.map(x => x[1]));
+        return 'RVSP as numbers (' + rv.length + ' studies): mean difference ' + (md >= 0 ? '+' : '') + md.toFixed(1) + ' mmHg (yours minus attending), limits of agreement ' + (md - 1.96 * sd).toFixed(1) + ' to ' + (md + 1.96 * sd).toFixed(1) + (icc != null ? ' · ICC ' + icc.toFixed(2) : '') + '.'; })()),
       (() => { const D = R.map(r => r.dm).filter(Boolean); if (!D.length) return null; const cats = ['Both', 'ASE 2025 only', 'ASE/EACVI 2016 only', 'Neither'];
         const n25 = D.filter(d => d.m25).length, n16 = D.filter(d => d.m16).length;
         return el('div', { class: 'diadash' }, el('h3', null, 'Diastology: which guideline the attending’s grade matches'), el('p', { class: 'p-ref' }, D.length + ' studies with an attending grade · shown for comparison, not part of the agreement statistics'),
