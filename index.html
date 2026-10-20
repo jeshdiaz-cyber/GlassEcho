@@ -4159,7 +4159,7 @@ page('overview', 'Study overview', 'start', root => {
       el('li', null, link('views', 'Views and completeness'), el('span', null, 'What to measure in each view and what is still missing.')))),
     el('section', { class: 'card' }, el('h3', null, el('i', null, '3'), 'Finish the report'), el('ul', null,
       el('li', null, link('report', 'Report'), el('span', null, 'Indication, image quality and prior study, then copy the summary or the full report.')))));
-  add(root, el('div', { class: 'toolbar' }, el('button', { class: 'btn primary', type: 'button', data: { newcase: '1' } }, 'Start a new case'), el('span', { class: 'p-ref' }, 'Empties the fields, collapses every section and opens Echo measurements.')),
+  add(root, el('div', { class: 'toolbar' }, el('button', { class: 'btn primary', type: 'button', data: { newcase: '1' } }, 'Start a new case'), el('button', { class: 'btn', type: 'button', onclick: () => openPicker() }, 'Open a saved study'), el('span', { class: 'p-ref' }, 'Start a new case empties the fields and opens Echo measurements; Open a saved study lists the studies saved on this device.')),
     el('div', { class: 'ov' }, el('div', { style: 'display:grid;gap:18px' }, card, glance, attOverviewCard(), el('section', { class: 'card' }, el('h2', null, 'Cardiomyopathy suggestion'), cmpBlock(), el('p', { class: 'p-ref', style: 'margin-top:10px' }, 'Worked out from the numbers entered; not diagnoses. Details on the ', link('cmp', 'Cardiomyopathies page'), '.'))), el('div', { style: 'display:grid;gap:18px' }, wm, comp)), diaCard(), steps,
     el('p', { class: 'foot' }, M.echoNote));
 });
