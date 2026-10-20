@@ -5205,6 +5205,86 @@ async function saveFile(filename, text){
   catch (e) { toast('The file could not be saved from here.'); }
 }
 function twiceBtn(btn, label, fn){ let armed = 0; btn.addEventListener('click', () => { if (armed){ clearTimeout(armed); armed = 0; btn.textContent = label; fn(); } else { btn.textContent = matchMedia('(max-width:820px)').matches ? 'Tap again' : 'Click again to confirm'; armed = setTimeout(() => { armed = 0; btn.textContent = label; }, 3000); } }); return btn; }
+
+/* ---------- import studies from Excel (.xlsx) or CSV (added in this web version) ----------
+   One row per study. A column is matched by the key in square brackets at the end of its heading ("IVSd (mm) [Echo!B23]"),
+   by the key itself, or by the measurement's name as shown in the app. Other columns are ignored. Each row becomes a new saved study. */
+async function unzipEntries(buf){
+  const u8 = new Uint8Array(buf), dv = new DataView(buf); let e = -1;
+  for (let i = u8.length - 22; i >= Math.max(0, u8.length - 70000); i--) if (dv.getUint32(i, true) === 0x06054b50){ e = i; break; }
+  if (e < 0) throw new Error('not a zip file');
+  const n = dv.getUint16(e + 10, true); let p = dv.getUint32(e + 16, true); const out = {};
+  for (let k = 0; k < n; k++){
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nl));
+    const start = off + 30 + dv.getUint16(off + 26, true) + dv.getUint16(off + 28, true), data = u8.subarray(start, start + csize);
+    out[name] = async () => { if (method === 0) return new TextDecoder().decode(data);
+      const s = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw')); return await new Response(s).text(); };
+    p += 46 + nl + xl + cl;
+  }
+  return out;
+}
+async function readXlsx(buf){
+  const z = await unzipEntries(buf), X = t => new DOMParser().parseFromString(t, 'application/xml');
+  const shared = z['xl/sharedStrings.xml'] ? [...X(await z['xl/sharedStrings.xml']()).getElementsByTagName('si')].map(si => [...si.getElementsByTagName('t')].map(t => t.textContent).join('')) : [];
+  const paths = Object.keys(z).filter(k => /^xl\/worksheets\/[^/]+\.xml$/.test(k)).sort();
+  if (!paths.length) throw new Error('no worksheet found');
+  const col = r => { let n = 0; for (const ch of r.replace(/\d+$/, '')) n = n * 26 + ch.charCodeAt(0) - 64; return n - 1; };
+  const sheets = [];
+  for (const path of paths){ const rows = [];
+  for (const row of X(await z[path]()).getElementsByTagName('row')){
+    const arr = [];
+    for (const c of row.getElementsByTagName('c')){ const t = c.getAttribute('t'), v = c.getElementsByTagName('v')[0]; let val = '';
+      if (t === 's') val = shared[+(v && v.textContent)] || ''; else if (t === 'inlineStr') val = [...c.getElementsByTagName('t')].map(x => x.textContent).join(''); else val = v ? v.textContent : '';
+      arr[col(c.getAttribute('r'))] = val; }
+    rows.push(Array.from(arr, x => x == null ? '' : x));
+  }
+  sheets.push(rows); }
+  return sheets;
+}
+function readCsv(text){
+  const first = text.split(/\r?\n/)[0] || '', d = (first.match(/;/g) || []).length > (first.match(/,/g) || []).length ? ';' : first.includes('\t') ? '\t' : ',';
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++){ const ch = text[i];
+    if (q){ if (ch === '"'){ if (text[i + 1] === '"'){ cur += '"'; i++; } else q = false; } else cur += ch; }
+    else if (ch === '"') q = true; else if (ch === d){ row.push(cur); cur = ''; } else if (ch === '\n'){ row.push(cur.replace(/\r$/, '')); rows.push(row); row = []; cur = ''; } else cur += ch; }
+  if (cur !== '' || row.length){ row.push(cur); rows.push(row); }
+  return rows;
+}
+/* which input a column heading refers to */
+let IMPORT_LABELS = null;
+function importKeyOf(h){
+  h = String(h || '').trim(); if (!h) return null;
+  const m = /\[\s*([A-Za-z0-9 ]+![A-Za-z0-9_]+)\s*\]\s*$/.exec(h); if (m && m[1] in DEFAULTS) return m[1];
+  if (h in DEFAULTS) return h;
+  if (/^study (?:code|id)$|^patient id$/i.test(h)) return 'Echo!B10';
+  if (!IMPORT_LABELS){ IMPORT_LABELS = new Map(); const norm = s => String(s).toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9′'/]+/g, ' ').trim();
+    for (const k in DEFAULTS){ const lab = CONSTS[k.replace(/!B(\d+)$/, '!A$1')]; if (lab && !IMPORT_LABELS.has(norm(lab))) IMPORT_LABELS.set(norm(lab), k); }
+    IMPORT_LABELS.norm = norm; }
+  return IMPORT_LABELS.get(IMPORT_LABELS.norm(h)) || null;
+}
+const IMPORT_TEXT = new Set(['Echo!B10', 'Echo!B11', 'Att!lvef', 'Att!rvsp', 'Att!code', 'Report!B11']);
+async function importStudiesFile(f){
+  let rows = [];
+  try { if (/\.xlsx$/i.test(f.name)){ const sh = await readXlsx(await f.arrayBuffer()), score = rs => { const r0 = (rs.find(r => r.some(x => String(x).trim())) || []); return r0.filter(importKeyOf).length; };
+      rows = sh.slice().sort((a, b) => score(b) - score(a))[0] || []; } else rows = readCsv(await f.text()); }
+  catch (e) { return { err: 'Could not read that file (' + e.message + '). Save it as .xlsx or .csv.' }; }
+  rows = rows.filter(r => r.some(x => String(x).trim() !== ''));
+  if (rows.length < 2) return { err: 'The file needs a heading row and at least one study.' };
+  const head = rows[0], keys = head.map(importKeyOf), unknown = head.filter((h, i) => String(h).trim() && !keys[i]);
+  if (!keys.some(Boolean)) return { err: 'None of the column headings matched a GlassEcho measurement.' };
+  await ensureStore(); let n = 0;
+  for (const r of rows.slice(1, 1001)){
+    const over = blankStudy();
+    keys.forEach((k, i) => { if (!k) return; let v = String(r[i] == null ? '' : r[i]).trim(); if (v === '') return;
+      over[k] = !IMPORT_TEXT.has(k) && /^-?\d+(?:[.,]\d+)?$/.test(v) ? Number(v.replace(',', '.')) : v; });
+    const rec = withInputs(over, () => snapshotRecord());
+    const res = await putRecord(newId(), rec); if (res === 'full' || res === 'fail') break; n++;
+  }
+  Store.onchange();
+  return { n, cols: keys.filter(Boolean).length, unknown };
+}
+
 const STH = ['Study code', 'Study entry date', 'Saved', 'LVEF', 'Read time', 'Attending', 'Diastology, ASE 2025', 'Diastology, ASE/EACVI 2016', 'Cath', 'Summary', ''];
 /* cath correlation of a saved study: agreements out of the scored comparisons (cached per saved version) */
 const CATHROWS = new Map();
@@ -5216,6 +5296,11 @@ page('studies', 'Saved studies', 'report', root => {
   const where = el('p', { class: 'lead' }), tb = el('tbody'), empty = el('p', { class: 'lead', style: 'padding:16px;margin:0' }), move = el('p', { class: 'p-ref', hidden: true, style: 'margin-bottom:12px' });
   const stamp = () => new Date().toISOString().slice(0, 10);
   const file = el('input', { type: 'file', accept: '.json,application/json', hidden: true });
+  const xfile = el('input', { type: 'file', accept: '.xlsx,.csv,text/csv', hidden: true });
+  xfile.addEventListener('change', async () => { const f = xfile.files && xfile.files[0]; xfile.value = ''; if (!f) return;
+    istat.hidden = false; istat.textContent = 'Reading ' + f.name + '…'; const r = await importStudiesFile(f);
+    istat.textContent = r.err ? r.err : r.n + (r.n === 1 ? ' study' : ' studies') + ' imported from ' + f.name + ', using ' + r.cols + ' matched column' + (r.cols === 1 ? '' : 's') + '.' + (r.unknown.length ? ' Ignored ' + r.unknown.length + ' column' + (r.unknown.length === 1 ? '' : 's') + ': ' + r.unknown.slice(0, 8).join(', ') + (r.unknown.length > 8 ? '…' : '') + '.' : '');
+    if (!r.err) toast(r.n + ' studies imported'); });
   file.addEventListener('change', async () => {
     const f = file.files && file.files[0]; file.value = ''; if (!f) return;
     let list = null; try { list = JSON.parse(await f.text()); } catch (e) {}
@@ -5231,7 +5316,9 @@ page('studies', 'Saved studies', 'report', root => {
     el('button', { class: 'btn', type: 'button', style: 'margin-left:auto', onclick: async () => { await ensureStore(); if (!Store.list.length){ toast('There are no saved studies to export.'); return; } saveFile('echo-studies-' + stamp() + '.xlsx', studiesXlsx(Store.list)); } }, 'Export Excel'),
     el('button', { class: 'btn', type: 'button', onclick: async () => { await ensureStore(); if (!Store.list.length){ toast('There are no saved studies to export.'); return; } saveFile('echo-studies-' + stamp() + '.csv', studiesCsv(Store.list)); } }, 'Export CSV'),
     el('button', { class: 'btn', type: 'button', onclick: async () => { await ensureStore(); if (!Store.list.length){ toast('There are no saved studies to export.'); return; } saveFile('echo-studies-backup-' + stamp() + '.json', JSON.stringify(Store.list)); } }, 'Export backup'),
-    el('button', { class: 'btn', type: 'button', onclick: () => file.click() }, 'Import backup'), file);
+    el('button', { class: 'btn', type: 'button', onclick: () => file.click() }, 'Import backup'), file,
+    el('button', { class: 'btn', type: 'button', title: 'One row per study; column headings named like the measurements', onclick: () => xfile.click() }, 'Import Excel or CSV'), xfile);
+  const istat = el('p', { class: 'p-ref', hidden: true, style: 'margin:-4px 0 12px' });
   const fmtWhen = t => { const d = new Date(t); return isNaN(d) ? '' : d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) + ', ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }); };
   function render(){
     where.textContent = Store.mode === 'cloud' ? 'Every study you save is kept in your own private space in GlassEcho. Only you can see it, on any device where you are signed in. Use the study code, not a name or record number, unless your institution allows it.'
@@ -5261,7 +5348,7 @@ page('studies', 'Saved studies', 'report', root => {
   }
   const counts = countsCard();
   Store.onchange = () => { scrubSaved(); render(); counts.render(); qualityRefresh(); }; bind(render); bind(counts.render);
-  add(root, where, tools, move, counts.node, el('div', { class: 'tbl', style: 'margin-top:0' }, el('table', { class: 'studytbl' }, el('thead', null, el('tr', null, STH.map(t => el('th', null, t)))), tb), empty),
+  add(root, where, tools, istat, move, counts.node, el('div', { class: 'tbl', style: 'margin-top:0' }, el('table', { class: 'studytbl' }, el('thead', null, el('tr', null, STH.map(t => el('th', null, t)))), tb), empty),
     el('p', { class: 'foot' }, 'The Excel and CSV exports have one row per study: every entered measurement, the wall-motion scores, the report details and the main calculated results. The Excel file adds a second sheet that compares the two diastology classifications study by study. Opening a saved study replaces what is on screen; saving again updates the same record.'));
 });
 
