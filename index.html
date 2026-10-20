@@ -5727,6 +5727,7 @@ const MEAS = [
   ['Echo!B99', [/\b(?:ar|ai)\s*(?:vc|vena\s*contracta)/], 'cm', [0.05, 2]],
   ['Echo!B100', [/\b(?:ar|ai)\s*(?:pht|p\s*1\/2\s*t|pressure half)/], 'msec', [50, 1500]],
   ['Echo!B113', [/\bmv\s*(?:pht|p\s*1\/2\s*t|pressure half)|mitral[^\n]{0,10}pressure half/], 'msec', [30, 500]],
+  ['Echo!B117', [/\b(?:mv|mitral(?: valve| inflow)?)\s*vti\b/], 'vti', [5, 200]],
   ['Echo!B114', [/\bmv\s*(?:mean\s*(?:pg|grad(?:ient)?)|mpg|pg\s*mean)|mitral[^\n]{0,12}mean (?:pressure )?gradient|mean transmitral (?:pressure )?gradient/], 'mmhg', [0.5, 40]],
   ['Echo!B129', [/\bmr\s*(?:vc|vena\s*contracta)/], 'cm', [0.05, 2]],
   ['Echo!B130', [/\b(?:mr\s*)?pisa\s*(?:radius|r)\b/], 'cm', [0.1, 2]],
@@ -5773,11 +5774,15 @@ const unitNorm = u => { u = String(u || '').toLowerCase().replace(/\s+/g, ''); i
 /* text copied from a photo of a table (Live Text) often puts each cell on its own line, or reads a whole column of labels
    before the column of values. Put each label back on the same line as its value. */
 const RL_UNIT = '(?:%|mm\\s?hg|m\\/s|cm\\/s|cm²|cm2|mm|cm|ml|l\\/min|ms|bpm|kg|g|m²|m2|in|lbs?)';
-const RL_VAL = new RegExp('^[<>]?\\s*-?\\d+(?:[.,]\\d+)?\\s*' + RL_UNIT + '?$', 'i');
+const RL_VAL = new RegExp('^[<>]?\\s*-?\\d+(?:[.,]\\d+)?\\s*(?:' + RL_UNIT + '(?:\\/m2|\\/m²)?|ratio|x)?(?:\\s+-\\s+[a-z][^\\d]{0,40})?$', 'i');
+const RL_RANGE = /^[\[(]?\s*\d+(?:[.,]\d+)?\s*(?:-|–|to)\s*\d+(?:[.,]\d+)?\s*[\])]?$/;
 const RL_UNITONLY = new RegExp('^' + RL_UNIT + '$', 'i');
-const RL_HEAD = /^(?:measurements?|values?|units?|results?|name|method|parameters?|normal(?: range)?|reference(?: range)?|ref\.? range|site|view|avg|average|mean)$/i;
+const RL_HEAD = /^(?:measurements?|values?|units?|results?|name|method|parameters?|ranges?|normal(?: range)?|reference(?: range)?|ref\.? range|site|view|avg|average|mean|doppler|2d|20|m-?mode|mm|2d\s*\/\s*mm|20\s*\/\s*mm|2d\s*\/\s*m-?mode|tdi|tissue doppler|color|colour|calculations?)$/i;
 function relayout(t){
-  let L = String(t).replace(/\r/g, '').split('\n').map(x => x.trim()).filter(x => x && !RL_HEAD.test(x));
+  let L = String(t).replace(/\r/g, '').split('\n').map(x => x.trim()).filter(x => x && !RL_HEAD.test(x))
+    /* common Live Text slips: "2D" read as "20", a leading L read as E/I/1, decimal commas */
+    .map(x => /^-?\d/.test(x) ? x.replace(/(\d),(\d)/g, '$1.$2') : x.replace(/^([^\d]*?)\s+(?:2d|20|zd|m-?mode|mm)$/i, '$1').replace(/^[EI1l]V(PW|ID|OT)/, 'LV$1').replace(/^[1l]VS/, 'IVS'))
+    .filter(x => !RL_RANGE.test(x));
   const kind = x => RL_VAL.test(x) ? 'v' : RL_UNITONLY.test(x) ? 'u' : /[a-z]/i.test(x) && x.length <= 48 && !new RegExp('\\d\\s*' + RL_UNIT + '\\b', 'i').test(x) && !/[:=]\s*-?\d/.test(x) ? 'l' : 'o';
   const out = []; let i = 0;
   while (i < L.length){
