@@ -1,7 +1,7 @@
 {
- "name": "Echo workbook",
- "short_name": "Echo workbook",
- "description": "Transthoracic echo interpretation workbook. Educational aid; not a medical device.",
+ "name": "GlassEcho",
+ "short_name": "GlassEcho",
+ "description": "GlassEcho: a guideline-based, computer-assisted echocardiography interpretation and teaching tool. Educational aid; not a medical device.",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
@@ -10,17 +10,17 @@
  "theme_color": "#0A6C8F",
  "icons": [
   {
-   "src": "icons/icon-192.png",
+   "src": "icon-192.png",
    "sizes": "192x192",
    "type": "image/png"
   },
   {
-   "src": "icons/icon-512.png",
+   "src": "icon-512.png",
    "sizes": "512x512",
    "type": "image/png"
   },
   {
-   "src": "icons/icon-512-maskable.png",
+   "src": "icon-512-maskable.png",
    "sizes": "512x512",
    "type": "image/png",
    "purpose": "maskable"

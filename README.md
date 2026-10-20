@@ -1,14 +1,16 @@
-# Echo workbook: offline web app
+# GlassEcho: offline web app
 
-Built 2026-10-06. Version d2e0a47a4599.
+A guideline-based, computer-assisted echocardiography interpretation and teaching tool. (Formerly "Echo workbook".)
+
+Built 2026-10-20. Version cdf2cee33de5 (v61: ASE 2025 indeterminate diastology panel and Study overview diastolic card; PASP can be entered on the Diastology page; reading timer, coded indication, image quality and protocol items, counts on Saved studies; quality dashboard; wall motion fill by territory and culprit vessel; image-quality defaults, normal-valve button; compare with attending and agreement statistics; LVEF range in 5% intervals; LVEF category follows the reported interval; attending diastology vs 2016/2025; prefill the attending read from pasted text; all at-a-glance items compared, attending comparison shown with the study; comparison organised like the Echo page; PH grade and multiple critical findings; attending comparison opens from Saved studies; measurements prefilled from the official report; GE EchoPAC labels; narrative report format; indications without "Known" or "follow-up"; one-tap paste from the clipboard; phone menu scrolls; 2016 myocardial disease set from LVEF, wall motion and LV hypertrophy; agreement with entered items only; renamed GlassEcho; title screen and cut-glass logo).
 
 ## What is in this folder
 
 - `index.html`: the whole workbook in one file.
 - `sw.js`: keeps a copy on the device so the app opens without a connection.
-- `manifest.webmanifest` and `icons/`: the name and icon used on the home screen.
+- `manifest.webmanifest` and the four `.png` icons: the name and icon used on the home screen.
 
-Keep the five items together in one folder.
+Keep all of these files together at the top level of one folder (no subfolders).
 
 ## 1. Put it on a web address
 
@@ -41,7 +43,7 @@ From then on it opens full screen, with or without a connection.
 
 ## 4. Updating
 
-Replace `index.html` and `sw.js` on the server with the new ones (they change together). The app picks up the new version the next time it is opened online, and shows it on the following launch.
+Replace `index.html` and `sw.js` on the server with the new ones (they change together; in this update `manifest.webmanifest` changed too). The app picks up the new version the next time it is opened online, and shows it on the following launch.
 
 ## Notes
 
