@@ -676,6 +676,7 @@ td.dd{background:color-mix(in srgb,var(--warn-bg) 55%,transparent)}
 .getitle{display:flex; align-items:center; gap:18px; margin:-4px 0 18px; padding-bottom:18px; border-bottom:1px solid var(--line)}
 .gew{margin:0; font:300 34px/1.05 var(--head); letter-spacing:-.01em; color:var(--ink)} .gew b{font-weight:700; color:var(--accent)}
 .gesub{margin:6px 0 0; font-size:15px; color:var(--muted)} .getag{margin:4px 0 0; font:600 15px var(--head); color:var(--accent); letter-spacing:.01em}
+.brand .btag{display:block; margin-top:4px; font:600 11.5px var(--head); letter-spacing:0; white-space:nowrap; color:var(--accent)} .brand span{line-height:1.35}
 .brand b .gl{font-weight:300; font-size:inherit; color:inherit} .brand b{color:var(--ink)}
 @media (max-width:560px){ .getitle{gap:12px} .getitle svg{width:58px; height:58px} .gew{font-size:28px} }
 </style>
@@ -684,7 +685,7 @@ td.dd{background:color-mix(in srgb,var(--warn-bg) 55%,transparent)}
 <nav class="rail" id="rail" aria-label="Workbook pages">
   <div class="brand" id="brand">
     <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><path d="M18 3 33.6 28.5A18.5 18.5 0 0 1 2.4 28.5Z" fill="var(--accent)"/><path d="M11.2 17.6a11 11 0 0 0 13.6 0M7.6 23.4a17 17 0 0 0 20.8 0" fill="none" stroke="var(--surface)" stroke-width="2" stroke-linecap="round"/></svg>
-    <div><b><span class="gl">Glass</span>Echo</b><span>Guideline-based echo interpretation and teaching</span></div>
+    <div><b><span class="gl">Glass</span>Echo</b><span>Guideline-based echo interpretation and teaching</span><span class="btag">Read it. Reason it. Report it.</span></div>
   </div>
   <div class="tools">
     <button class="btn" id="new" type="button">Start a new case</button>
@@ -5484,7 +5485,8 @@ function scrubText(t){
 }
 const PNEG = /\b(no|not|without|negative for|absence of|absent|free of|rule[sd]? out|r\/o|neither|nor)\b[^.;:]*$/i;
 /* split into clauses; keep the text before a term to check for negation */
-const pClauses = t => t.replace(/\n+/g, '. ').split(/(?<=[.;])\s+|•/).map(s => s.trim()).filter(Boolean);
+const unwrap = t => String(t).replace(/\r/g, '').replace(/([^.;:!?\n])[ \t]*\n(?=[ \t]*[a-z(0-9])/g, '$1 ').replace(/-\n(?=[a-z])/g, '');
+const pClauses = t => unwrap(t).replace(/\n+/g, '. ').split(/(?<=[.;])\s+|•/).map(s => s.trim()).filter(Boolean);
 const pNeg = (c, idx) => PNEG.test(c.slice(Math.max(0, idx - 60), idx));
 const REG_WORDS = [[/torrential/i, 'Torrential'], [/massive/i, 'Massive'], [/moderate(?:ly)?[\s-]*(?:to|-|–)[\s-]*severe|mod(?:erate)?[\s-]*severe/i, 'Moderate–severe'], [/mild[\s-]*(?:to|-|–)[\s-]*moderate|mild[\s-]*mod(?:erate)?/i, 'Mild–moderate'],
   [/severe/i, 'Severe'], [/moderate/i, 'Moderate'], [/mild/i, 'Mild'], [/trace|trivial|physiologic|minimal/i, 'None/trace']];
@@ -5591,12 +5593,30 @@ function parseReport(raw){
 
 /* one tap: read the clipboard (copied with Live Text in the Camera viewfinder, or anywhere else) */
 const LIVETEXT_TIP = 'On iPhone: open Camera, point it at the report, tap the text icon (bottom right), Select All or drag to select, Copy. No photo is saved. Then come back and tap the button.';
-function clipButton(take, label){
+async function readClip(){
+  const C = navigator.clipboard; if (!C) return { err: 'none' };
+  if (C.read){
+    try { const items = await C.read(); let img = false;
+      for (const it of items){ const ty = it.types.includes('text/plain') ? 'text/plain' : it.types.find(x => /^text\//.test(x));
+        if (ty){ let t = await (await it.getType(ty)).text(); if (ty === 'text/html'){ const d = document.createElement('div'); d.innerHTML = t.replace(/<(br|\/p|\/div|\/tr|\/li)[^>]*>/gi, '\n'); t = d.textContent; } if (t && t.trim()) return { t }; }
+        if (it.types.some(x => /^image\//.test(x))) img = true; }
+      return img ? { img: true } : { empty: true };
+    } catch (e){ if (e && e.name === 'NotAllowedError') return { err: 'denied' }; }
+  }
+  if (C.readText){ try { const t = await C.readText(); return t && t.trim() ? { t } : { empty: true }; } catch (e){ return { err: e && e.name === 'NotAllowedError' ? 'denied' : 'fail' }; } }
+  return { err: 'none' };
+}
+function clipButton(take, label, zone){
   const b = el('button', { class: 'btn primary clipbtn', type: 'button' }, label || 'Paste from clipboard');
+  const fallback = msg => { toast(msg); if (zone){ try { zone.focus(); } catch (e) {} } };
   b.addEventListener('click', async e => { e.preventDefault(); e.stopPropagation();
-    if (!navigator.clipboard || !navigator.clipboard.readText){ toast('This browser cannot read the clipboard directly. Tap the box and choose Paste.'); return; }
-    try { const t = await navigator.clipboard.readText(); if (!t || !t.trim()){ toast('The clipboard is empty. Copy the report text first.'); return; } take(t); }
-    catch (err){ toast('Clipboard access was not allowed. Tap the box and choose Paste.'); } });
+    const r = await readClip();
+    if (r.t){ take(r.t); return; }
+    if (r.img) return fallback('The clipboard holds a picture, not text. Copy the text with Live Text (or the Scan report shortcut), then tap again.');
+    if (r.empty) return fallback('The clipboard is empty. Copy the report text first, then tap again.');
+    if (r.err === 'denied') return fallback('The phone did not allow reading the clipboard: tap the small Paste bubble when it appears. Or touch and hold the box below and choose Paste.');
+    fallback('This browser cannot read the clipboard directly. Touch and hold the box below and choose Paste.');
+  });
   return b;
 }
 function pastePanel(){
@@ -5606,7 +5626,7 @@ function pastePanel(){
   const zone = el('textarea', { class: 'fld pzone', rows: 2, placeholder: 'Tap here and choose Paste (or press Ctrl/⌘+V). The text is read and discarded, never shown.', 'aria-label': 'Paste the attending report text here', autocomplete: 'off', spellcheck: 'false' });
   let filledNow = [], undoA = null;
   const take = txt => {
-    if (!txt || !txt.trim()) return; pastes++;
+    if (!txt || !txt.trim()) return; pastes++; const nChars = txt.length;
     const { F, why } = parseReport(txt);       // the text goes no further than this line
     txt = null; const ks = Object.keys(F); undoA = Object.fromEntries(ks.map(k => [k, INPUTS[k]]));
     const fill = [];
@@ -5616,12 +5636,12 @@ function pastePanel(){
     filledNow = filledNow.concat(fill.map(k => ({ k, v: F[k], src: why[k] })));
     if (fill.length){ save(); for (const c of controls) c.sync(); refresh();
       toast(fill.length + ' finding' + (fill.length === 1 ? '' : 's') + ' filled in', 'Undo', () => { for (const k in undoA) INPUTS[k] = undoA[k]; save(); for (const c of controls) c.sync(); refresh(); filledNow = []; draw(); }); }
-    lastN = ks.length; draw();
+    lastN = ks.length; lastChars = nChars; draw();
   };
-  let lastN = 0;
+  let lastN = 0, lastChars = 0;
   zone.addEventListener('paste', e => { e.preventDefault(); take((e.clipboardData || window.clipboardData).getData('text')); zone.value = ''; });
   zone.addEventListener('input', () => { const t = zone.value; zone.value = ''; if (t.length > 20) take(t); });      // typed or dictated text, or a paste the browser did not report
-  const clipBtn = clipButton(take, 'Paste attending report');
+  const clipBtn = clipButton(take, 'Paste attending report', zone);
   const applyBtn = el('button', { class: 'btn small', type: 'button' }, 'Replace ticked'), clearBtn = el('button', { class: 'btn small', type: 'button', onclick: () => { found = {}; filledNow = []; pastes = 0; draw(); } }, 'Keep mine');
   const labelOf = k => k === 'Att!lvef' ? 'LVEF (%)' : (ATT.find(i => attKey(i) === k) || {}).label || k;
   const checks = new Map();
@@ -5629,7 +5649,7 @@ function pastePanel(){
     list.replaceChildren(); checks.clear();
     const keys = Object.keys(found);
     status.textContent = !pastes ? 'Copy the impression or summary of the attending report, then tap the button: recognized findings go straight into the empty items below. ' + LIVETEXT_TIP
-      : !lastN && !filledNow.length ? 'Nothing recognized. The text was discarded. Try copying the impression section only.'
+      : !lastN && !filledNow.length ? 'Text received (' + lastChars + ' characters), but no findings were recognized. It was discarded. Try copying the impression or summary only.'
       : filledNow.length + ' finding' + (filledNow.length === 1 ? '' : 's') + ' filled in from ' + pastes + ' paste' + (pastes > 1 ? 's' : '') + '; the text was discarded. Paste another part if needed.' + (keys.length ? ' ' + keys.length + ' item' + (keys.length > 1 ? 's' : '') + ' already had a different value; tick any to replace.' : '');
     if (filledNow.length) add(list, el('p', { class: 'pfdone' }, filledNow.map(f => el('span', { class: 'chip', title: 'from “' + f.src + '”' }, labelOf(f.k) + ': ' + f.v))));
     applyBtn.hidden = clearBtn.hidden = !keys.length;
@@ -5750,8 +5770,39 @@ const MEAS = [
 ];
 const UNIT_RE = /^\s*(cm\/s(?:ec)?|cm\/sec|m\/s(?:ec)?|mm\s*hg|mmhg|ml\/m2|ml\/m²|cm\/m2|cm\/m²|g\/m2|cm2\/m2|ml|cm2|cm²|mm2|cm|mm|msec|ms|sec|s\b|%|bpm|kg|lbs?|inch(?:es)?|in\b|m\b|years|yrs?|y\b)/i;
 const unitNorm = u => { u = String(u || '').toLowerCase().replace(/\s+/g, ''); if (/\/m2|\/m²/.test(u)) return 'perm2'; if (/^inch/.test(u)) return 'in'; return /^cm\/s/.test(u) ? 'cm/s' : /^m\/s/.test(u) ? 'm/s' : /mmhg/.test(u) ? 'mmhg' : /^ml\/m/.test(u) ? 'ml/m2' : u === 'ml' ? 'ml' : /^(cm2|cm²)$/.test(u) ? 'cm2' : u === 'mm2' ? 'mm2' : u === 'cm' ? 'cm' : u === 'mm' ? 'mm' : /^(ms|msec)$/.test(u) ? 'ms' : /^(s|sec)$/.test(u) ? 's' : u === '%' ? '%' : u === 'in' ? 'in' : u === 'm' ? 'm' : /^lb/.test(u) ? 'lb' : u; };
+/* text copied from a photo of a table (Live Text) often puts each cell on its own line, or reads a whole column of labels
+   before the column of values. Put each label back on the same line as its value. */
+const RL_UNIT = '(?:%|mm\\s?hg|m\\/s|cm\\/s|cm²|cm2|mm|cm|ml|l\\/min|ms|bpm|kg|g|m²|m2|in|lbs?)';
+const RL_VAL = new RegExp('^[<>]?\\s*-?\\d+(?:[.,]\\d+)?\\s*' + RL_UNIT + '?$', 'i');
+const RL_UNITONLY = new RegExp('^' + RL_UNIT + '$', 'i');
+const RL_HEAD = /^(?:measurements?|values?|units?|results?|name|method|parameters?|normal(?: range)?|reference(?: range)?|ref\.? range|site|view|avg|average|mean)$/i;
+function relayout(t){
+  let L = String(t).replace(/\r/g, '').split('\n').map(x => x.trim()).filter(x => x && !RL_HEAD.test(x));
+  const kind = x => RL_VAL.test(x) ? 'v' : RL_UNITONLY.test(x) ? 'u' : /[a-z]/i.test(x) && x.length <= 48 && !new RegExp('\\d\\s*' + RL_UNIT + '\\b', 'i').test(x) && !/[:=]\s*-?\d/.test(x) ? 'l' : 'o';
+  const out = []; let i = 0;
+  while (i < L.length){
+    const K = j => j < L.length ? kind(L[j]) : 'x';
+    if (K(i) === 'l'){
+      let j = i; while (K(j) === 'l') j++;
+      let k = j; while (K(k) === 'v') k++;
+      const nl = j - i, nv = k - j;
+      if (nv && nv === nl){                       /* a column of labels, then a column of values */
+        let m = k; while (K(m) === 'u') m++; const nu = m - k;
+        for (let q = 0; q < nl; q++) out.push(L[i + q] + ' ' + L[j + q] + (nu === nl ? ' ' + L[k + q] : ''));
+        i = nu === nl ? m : k; continue;
+      }
+      if (nl > 1 && nv === 0){ out.push(...L.slice(i, j - 1)); i = j - 1; continue; }
+      if (nl === 1 && nv >= 1){                   /* one label, its value on the next line (and maybe its unit after) */
+        out.push(L[i] + ' ' + L[j] + (K(j + 1) === 'u' ? ' ' + L[j + 1] : '')); i = j + 1 + (K(j + 1) === 'u' ? 1 : 0); continue;
+      }
+      out.push(...L.slice(i, j)); i = j; continue;
+    }
+    out.push(L[i]); i++;
+  }
+  return out.join('\n');
+}
 function parseMeasurements(raw){
-  const text = scrubMeas(raw), low = text.toLowerCase(), used = [], out = {}, src = {};
+  const text = relayout(scrubMeas(raw)), low = text.toLowerCase(), used = [], out = {}, src = {};
   const free = (a, b) => !used.some(([x, y]) => a < y && b > x);
   /* blood pressure and sex are written differently */
   { const m = /\b(?:bp|blood pressure)\b[^\d\n]{0,12}(\d{2,3})\s*\/\s*(\d{2,3})/.exec(low); if (m){ out['Echo!B17'] = +m[1]; out['Echo!B18'] = +m[2]; src['Echo!B17'] = 'BP ' + m[1] + '/' + m[2]; } }
@@ -5817,7 +5868,7 @@ function measPanel(){
   const take = txt => {
     if (!txt || !txt.trim()) return;
     const { out } = parseMeasurements(txt); txt = null;
-    const keys = Object.keys(out); if (!keys.length){ status.textContent = 'No measurements recognized. The text was discarded. Paste the measurements table or list from the report.'; return; }
+    const keys = Object.keys(out); if (!keys.length){ status.textContent = 'Text received, but no measurements were recognized. It was discarded. Copy the measurements table or list (label and value on the same line works best).'; return; }
     undoSnap = Object.fromEntries(keys.map(k => [k, INPUTS[k]]));
     const filled = [], skipped = [];
     for (const k of keys){ const cur = INPUTS[k]; if (cur == null || cur === '' || (NEW_CASE_DEFAULTS[k] != null && cur === NEW_CASE_DEFAULTS[k])){ INPUTS[k] = out[k]; filled.push(k); FROMREP.add(k); } else if (String(cur) !== String(out[k])) skipped.push([k, out[k]]); }
@@ -5829,7 +5880,7 @@ function measPanel(){
   };
   zone.addEventListener('paste', e => { e.preventDefault(); take((e.clipboardData || window.clipboardData).getData('text')); zone.value = ''; });
   zone.addEventListener('input', () => { const t = zone.value; zone.value = ''; if (t.length > 20) take(t); });
-  const clipBtn = clipButton(t => { box.open = true; take(t); }, 'Paste report measurements');
+  const clipBtn = clipButton(t => { box.open = true; take(t); }, 'Paste report measurements', zone);
   bind(markFromRep);
   status.textContent = LIVETEXT_TIP + ' Or paste the measurements section of the official report (from the EHR or a PDF) into the box. Recognized values go straight into the empty boxes, converted to the units used here; your own values are never overwritten unless you choose to. Paste several parts one after the other if needed.';
   const box = el('details', { class: 'card pastecard measpaste' }, el('summary', null, el('h2', null, 'Prefill from the official report'), clipBtn),
