@@ -2904,6 +2904,9 @@ const trjWhy = () => /^No TR/.test(String(g(TRJ) || '')) ? 'no TR jet' : /^Not m
     const v = g('Echo!B186');
     if (typeof v === 'number' && typeof g('Echo!B226') !== 'number') r = r.replace('unable to assess (no adequate TR signal)', 'not estimated (RA pressure unknown); peak TR gradient ' + Math.round(4 * v * v) + ' mmHg');
     return r; }; }
+/* ESC/ERS 2022: TR velocity not measurable counts as ≤2.8 m/s: low probability without other PH signs, intermediate with them */
+{ const f0 = FORMULAS['Echo!B238']; FORMULAS['Echo!B238'] = () => { const r = f0(); if (r !== '' && r != null) return r; if (!trjOff() || typeof g('Echo!B186') === 'number') return r;
+    return (Number(g('Echo!B237')) || 0) >= 2 ? 'Intermediate echocardiographic probability of PH (TR velocity not measurable; other PH signs present)' : 'Low echocardiographic probability of PH (TR velocity not measurable; no other PH signs)'; }; }
 function ivcRow(){
   for (const r of document.querySelectorAll('.prow[data-input="Echo!B223"]')){
     if (r.nextElementSibling && r.nextElementSibling.classList.contains('ivcs-row')) continue;
@@ -3065,7 +3068,7 @@ function countsCard(){
    Territories follow ASE 2015 (Figure 5), as on the territory map: typical segments, plus variable-supply segments. */
 const WM_TERR = {
   LAD: { core: [1, 2, 7, 8, 13, 14, 15], vari: [6, 9, 12, 16], basal: [1, 2], name: 'LAD' },
-  RCA: { core: [3, 4, 10], vari: [5, 9, 11], basal: [3, 4], name: 'RCA' },
+  RCA: { core: [3, 4, 10], vari: [5, 9, 11, 15], basal: [3, 4], name: 'RCA' },      /* apical inferior: LAD or RCA (ASE 2015) */
   LCx: { core: [5, 6, 11, 12, 16], vari: [], basal: [5, 6], name: 'LCx' }
 };
 const wmScore = i => { const v = INPUTS[segKey(i)]; return typeof v === 'number' ? v : null; };
@@ -4046,6 +4049,11 @@ function cmpFlags(){
   /* loading explanation */
   if (/concentric/i.test(T('Echo!B34')) && htn && !(mw != null && mw >= 15)) F.push({ t: 'Concentric geometry with raised blood pressure', lv: '', met: [T('Echo!B34'), 'Systolic BP ' + sh(sbp) + ' mmHg'], chk: ['Hypertensive heart disease is the likely explanation'] });
   const enough = ef != null && mw != null;
+  /* thick walls flagged both ways: age decides which comes first (sarcomeric HCM in younger patients, amyloid, mostly transthyretin, from 65 years) */
+  { const h = F.findIndex(f => /^Hypertrophic/.test(f.t)), am = F.findIndex(f => /^Infiltrative/.test(f.t));
+    if (h >= 0 && am >= 0 && age != null){ const first = age >= 65 ? am : h, second = age >= 65 ? h : am;
+      if (first > second){ const [x] = F.splice(first, 1); F.splice(second, 0, x); }
+      const top = F[Math.min(first, second)]; top.chk = (top.chk || []).concat([age >= 65 ? 'Age ' + age + ' (65 or older): amyloid listed before HCM' : 'Age ' + age + ' (under 65): HCM listed before amyloid']); } }
   return { F: F.map(f => ({ t: f.t, lv: f.lv, met: f.met.filter(Boolean), chk: (f.chk || []).filter(Boolean) })), enough };
 }
 const cmpExtras = () => cmpFlags().F.filter(f => /Ischaemic|Regional abnormality|Isolated RV|Concentric geometry/.test(f.t));
@@ -5118,6 +5126,11 @@ function exportColumns(){
   M.report.groups.forEach(gr => gr.rows.forEach(r => { if (r.in) cols.push({ k: r.k || K('Report', 'B' + r.r), h: 'Report: ' + r.a.trim() }); }));
   cols.push({ k: 'Diastology 2025!G27', h: 'Diastology: PASP entered (mmHg)' });
   cols.push({ k: EFR, h: 'Fellow LVEF range (%)' }, { k: 'Att!code', h: 'Attending: code' }, { k: 'Att!lvef', h: 'Attending: LVEF (%)' }); for (const it of ATT) if (!it.input) cols.push({ k: attKey(it), h: 'Attending: ' + it.label }); 
+  /* added later: kept in the export so a backup made in Excel or CSV brings everything back */
+  cols.push({ k: 'Echo!TRJ', h: 'Echo: TR jet' }, { k: 'Echo!IVCS', h: 'Echo: IVC visualisation' },
+    { k: 'Qual!VN_AV', h: 'Valves marked normal: aortic' }, { k: 'Qual!VN_MV', h: 'Valves marked normal: mitral' }, { k: 'Qual!VN_TV', h: 'Valves marked normal: tricuspid' }, { k: 'Qual!VN_PV', h: 'Valves marked normal: pulmonic' },
+    { k: 'Timing!sec', h: 'Reading time (seconds)' }, { k: 'Echo!EFRb', h: 'Fellow LVEF range: calculated interval when chosen' }, { k: 'Meta!fromrep', h: 'Values prefilled from the official report (app keys)' });
+  if (typeof CK !== 'undefined') for (const [n, k] of Object.entries(CK)) cols.push({ k, h: 'Cath: ' + ({ days: 'days from echo to cath', ind: 'reason', chg: 'treatment change in between', ra: 'RA mean (mmHg)', rvs: 'RV systolic (mmHg)', pas: 'PA systolic (mmHg)', pad: 'PA diastolic (mmHg)', pam: 'PA mean (mmHg)', pcwp: 'PCWP mean (mmHg)', vw: 'PCWP v wave (mmHg)', lvedp: 'LVEDP (mmHg)', co: 'cardiac output (L/min)', svo2: 'mixed venous saturation (%)', cad: 'vessels with significant stenosis', cul: 'culprit vessel', amg: 'invasive aortic mean gradient (mmHg)', ava: 'AVA, Gorlin (cm²)', lvg: 'LVEF by LV angiogram (%)' })[n] });
   return cols;
 }
 const EXPORT_OUT = [['BSA (m²)', 'Echo!B20'], ['LVEF used (%)', 'Echo!B43'], ['LVEF interpretation', 'Echo!D43'], ['LV mass index (g/m²)', 'Echo!B33'], ['Relative wall thickness', 'Echo!B31'], ['LV geometry', 'Echo!B34'], ['Wall-motion score index', 'Wall Motion!D27'],
@@ -5253,11 +5266,14 @@ function readCsv(text){
 }
 /* which input a column heading refers to */
 let IMPORT_LABELS = null;
-function importKeyOf(h){
+function importKeyOf(h, nth){
   h = String(h || '').trim(); if (!h) return null;
   const m = /\[\s*([A-Za-z0-9 ]+![A-Za-z0-9_]+)\s*\]\s*$/.exec(h); if (m && m[1] in DEFAULTS) return m[1];
   if (h in DEFAULTS) return h;
   if (/^study (?:code|id)$|^patient id$/i.test(h)) return 'Echo!B10';
+  /* the app's own export: a heading used more than once (e.g. "Prosthesis type" for each position) is matched by its order */
+  if (!importKeyOf.exp){ importKeyOf.exp = new Map(); try { for (const c of exportColumns()){ const t = c.h.toLowerCase(); if (!importKeyOf.exp.has(t)) importKeyOf.exp.set(t, []); importKeyOf.exp.get(t).push(c.k); } } catch (e) {} }
+  if (importKeyOf.exp.has(h.toLowerCase())){ const l = importKeyOf.exp.get(h.toLowerCase()); return l[Math.min(nth || 0, l.length - 1)]; }
   if (!IMPORT_LABELS){ IMPORT_LABELS = new Map(); const norm = s => String(s).toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9′'/]+/g, ' ').trim();
     for (const k in DEFAULTS){ const lab = CONSTS[k.replace(/!B(\d+)$/, '!A$1')]; if (lab && !IMPORT_LABELS.has(norm(lab))) IMPORT_LABELS.set(norm(lab), k); }
     IMPORT_LABELS.norm = norm; }
@@ -5266,23 +5282,27 @@ function importKeyOf(h){
 const IMPORT_TEXT = new Set(['Echo!B10', 'Echo!B11', 'Att!lvef', 'Att!rvsp', 'Att!code', 'Report!B11']);
 async function importStudiesFile(f){
   let rows = [];
-  try { if (/\.xlsx$/i.test(f.name)){ const sh = await readXlsx(await f.arrayBuffer()), score = rs => { const r0 = (rs.find(r => r.some(x => String(x).trim())) || []); return r0.filter(importKeyOf).length; };
+  try { if (/\.xlsx$/i.test(f.name)){ const sh = await readXlsx(await f.arrayBuffer()), score = rs => { const r0 = (rs.find(r => r.some(x => String(x).trim())) || []); return r0.filter(h => importKeyOf(h)).length; };
       rows = sh.slice().sort((a, b) => score(b) - score(a))[0] || []; } else rows = readCsv(await f.text()); }
   catch (e) { return { err: 'Could not read that file (' + e.message + '). Save it as .xlsx or .csv.' }; }
   rows = rows.filter(r => r.some(x => String(x).trim() !== ''));
   if (rows.length < 2) return { err: 'The file needs a heading row and at least one study.' };
-  const head = rows[0], keys = head.map(importKeyOf), unknown = head.filter((h, i) => String(h).trim() && !keys[i]);
+  const head = rows[0], seenH = new Map(), keys = head.map(h => { const t = String(h || '').trim().toLowerCase(), n = seenH.get(t) || 0; seenH.set(t, n + 1); return importKeyOf(h, n); }), idCol = head.findIndex(h => /^record id$/i.test(String(h).trim())), atCol = head.findIndex(h => /^saved at$/i.test(String(h).trim()));
+  const unknown = head.filter((h, i) => String(h).trim() && !keys[i] && i !== idCol && i !== atCol && !/^result: /i.test(String(h).trim()));
   if (!keys.some(Boolean)) return { err: 'None of the column headings matched a GlassEcho measurement.' };
-  await ensureStore(); let n = 0;
+  await ensureStore(); let n = 0, dup = 0; const have = new Set(Store.list.map(x => x.id));
   for (const r of rows.slice(1, 1001)){
+    const rid = idCol >= 0 ? String(r[idCol] || '').trim() : '';
+    if (rid && have.has(rid)){ dup++; continue; }
     const over = blankStudy();
     keys.forEach((k, i) => { if (!k) return; let v = String(r[i] == null ? '' : r[i]).trim(); if (v === '') return;
       over[k] = !IMPORT_TEXT.has(k) && /^-?\d+(?:[.,]\d+)?$/.test(v) ? Number(v.replace(',', '.')) : v; });
     const rec = withInputs(over, () => snapshotRecord());
-    const res = await putRecord(newId(), rec); if (res === 'full' || res === 'fail') break; n++;
+    if (atCol >= 0 && r[atCol] && !isNaN(Date.parse(r[atCol]))) rec.savedAt = new Date(Date.parse(r[atCol])).toISOString();
+    const res = await putRecord(/^[A-Za-z0-9_-]{4,40}$/.test(rid) ? rid : newId(), rec); if (res === 'full' || res === 'fail') break; n++;
   }
   Store.onchange();
-  return { n, cols: keys.filter(Boolean).length, unknown };
+  return { n, dup, cols: keys.filter(Boolean).length, unknown };
 }
 
 const STH = ['Study code', 'Study entry date', 'Saved', 'LVEF', 'Read time', 'Attending', 'Diastology, ASE 2025', 'Diastology, ASE/EACVI 2016', 'Cath', 'Summary', ''];
@@ -5295,14 +5315,16 @@ function cathRec(rec){ const id = rec.id + '|' + rec.savedAt; if (CATHROWS.has(i
 page('studies', 'Saved studies', 'report', root => {
   const where = el('p', { class: 'lead' }), tb = el('tbody'), empty = el('p', { class: 'lead', style: 'padding:16px;margin:0' }), move = el('p', { class: 'p-ref', hidden: true, style: 'margin-bottom:12px' });
   const stamp = () => new Date().toISOString().slice(0, 10);
-  const file = el('input', { type: 'file', accept: '.json,application/json', hidden: true });
+  const file = el('input', { type: 'file', accept: '.json,application/json,.xlsx,.csv,text/csv', hidden: true });
   const xfile = el('input', { type: 'file', accept: '.xlsx,.csv,text/csv', hidden: true });
   xfile.addEventListener('change', async () => { const f = xfile.files && xfile.files[0]; xfile.value = ''; if (!f) return;
     istat.hidden = false; istat.textContent = 'Reading ' + f.name + '…'; const r = await importStudiesFile(f);
-    istat.textContent = r.err ? r.err : r.n + (r.n === 1 ? ' study' : ' studies') + ' imported from ' + f.name + ', using ' + r.cols + ' matched column' + (r.cols === 1 ? '' : 's') + '.' + (r.unknown.length ? ' Ignored ' + r.unknown.length + ' column' + (r.unknown.length === 1 ? '' : 's') + ': ' + r.unknown.slice(0, 8).join(', ') + (r.unknown.length > 8 ? '…' : '') + '.' : '');
+    istat.textContent = r.err ? r.err : r.n + (r.n === 1 ? ' study' : ' studies') + ' imported from ' + f.name + ', using ' + r.cols + ' matched column' + (r.cols === 1 ? '' : 's') + '.' + (r.dup ? ' ' + r.dup + ' already saved here, skipped.' : '') + (r.unknown.length ? ' Ignored ' + r.unknown.length + ' column' + (r.unknown.length === 1 ? '' : 's') + ': ' + r.unknown.slice(0, 8).join(', ') + (r.unknown.length > 8 ? '…' : '') + '.' : '');
     if (!r.err) toast(r.n + ' studies imported'); });
   file.addEventListener('change', async () => {
     const f = file.files && file.files[0]; file.value = ''; if (!f) return;
+    if (/\.(xlsx|csv)$/i.test(f.name)){ istat.hidden = false; istat.textContent = 'Reading ' + f.name + '…'; const r = await importStudiesFile(f);
+      istat.textContent = r.err ? r.err : r.n + (r.n === 1 ? ' study' : ' studies') + ' imported from ' + f.name + '.' + (r.dup ? ' ' + r.dup + ' already saved here, skipped.' : ''); if (!r.err) toast(r.n + ' studies imported'); return; }
     let list = null; try { list = JSON.parse(await f.text()); } catch (e) {}
     if (!Array.isArray(list)){ toast('That file is not a backup made by this page.'); return; }
     await ensureStore(); let n = 0;
