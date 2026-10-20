@@ -654,6 +654,14 @@ td.dd{background:color-mix(in srgb,var(--warn-bg) 55%,transparent)}
 .efr-w{display:inline-flex; flex-wrap:wrap; align-items:center; gap:6px; margin-left:8px; font-size:13.5px; color:var(--muted)}
 .fld.efr{width:auto; padding:3px 8px; font-size:14px}
 .efr-t{font-size:12.5px}
+.diam{display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; margin-top:12px; font-size:14px}
+.diap{padding:3px 10px; border-radius:20px; background:var(--sunk)} .diap.ok{background:var(--ok-bg); color:var(--ok)} .diap.no{background:var(--bad-bg); color:var(--bad)}
+.diadash{margin-top:14px; padding-top:12px; border-top:1px solid var(--line)} .diadash h3{font:600 15px var(--head); margin:0 0 2px}
+.pastecard{margin-bottom:18px} .pastecard h2{font-size:17px; margin-bottom:8px}
+.prow2{display:flex; gap:10px; align-items:flex-start; flex-wrap:wrap} .prow2 .fld.pzone{flex:1 1 22em; width:auto; max-width:none; min-height:3.4em; resize:none}
+.pfl{display:grid; gap:6px; margin-top:10px}
+.pf{display:grid; grid-template-columns:auto minmax(0,14em) auto minmax(0,1fr); gap:8px; align-items:baseline; font-size:14px; padding:6px 8px; border-radius:var(--r-sm); background:var(--sunk)}
+@media (max-width:620px){ .pf{grid-template-columns:auto minmax(0,1fr)} .pf b, .pf .p-ref{grid-column:2} }
 </style>
 </head>
 <body>
@@ -5238,6 +5246,13 @@ const ATT = [
   { id: 'crit', grp: 'a', label: 'Critical finding', scale: ['No', 'Yes'], ord: false, which: true, mine: () => s0('Report!D26').trim() ? 'Yes' : 'No' },
   { id: 'cm', grp: 'a', label: 'Suggested cardiomyopathy', scale: CM_CATS, ord: false, two: true, mine: () => { let F = []; try { F = cmpFlags().F; } catch (e) {} const t = F.length ? F[0].t : '';
       return !t || /Borderline/.test(t) ? 'None' : /Dilated/.test(t) ? 'Dilated' : /Hypertrophic/.test(t) ? 'Hypertrophic' : /amyloid|Infiltrative/.test(t) ? 'Infiltrative (consider amyloid)' : /Non-dilated/.test(t) ? 'Non-dilated LV' : /Restrictive/.test(t) ? 'Restrictive' : /Takotsubo/.test(t) ? 'Takotsubo' : /RV/.test(t) ? 'Arrhythmogenic RV' : 'Other'; } }];
+/* which guideline the attending's diastolic grade matches (shown, not counted in the agreement) */
+const diaCatOf = k => { const t = s0(k); return t === 'Elevated LAP' ? 'Elevated LAP, no grade' : DIA_CATS.includes(t) ? t : ''; };
+function diaMatch(att, g16, g25){
+  if (!att || att === 'Not reported' || (!g16 && !g25)) return null;
+  const m16 = !!g16 && g16 === att, m25 = !!g25 && g25 === att;
+  return { m16, m25, g16, g25, t: m16 && m25 ? 'Both' : m25 ? 'ASE 2025 only' : m16 ? 'ASE/EACVI 2016 only' : 'Neither' };
+}
 const ATT_GROUPS = [['m', 'Measurements and grades'], ['d', 'Diastology'], ['a', 'Actionable findings']];
 const attKey = it => 'Att!' + (it.input || it.id);
 Object.assign(DEFAULTS, { 'Att!code': null, 'Att!lvef': null, 'Att!crit_which': null }, Object.fromEntries(ATT.filter(i => !i.input).map(i => [attKey(i), null])));
@@ -5289,7 +5304,7 @@ function attRecord(rec){
   const ins = recordInputs(rec); let r = null;
   if (ATT.some(it => attVal(it, ins)) ){
     r = withInputs(ins, () => ({ code: String(ins['Att!code'] || ''), when: Date.parse(rec.savedAt), items: Object.fromEntries(ATT.map(it => [it.id, [it.mine(), attVal(it, ins)]])),
-      ef: [g('Echo!B43'), (efOfAtt(ins) || {}).n] }));
+      ef: [g('Echo!B43'), (efOfAtt(ins) || {}).n], dm: diaMatch(String(ins['Att!dia'] || ''), diaCatOf('Diastology 2025!G107'), diaCatOf('Diastology 2025!G108')) }));
   }
   ATTROWS.set(id, r); return r;
 }
@@ -5337,8 +5352,18 @@ page('compare', 'Compare with attending', 'report', root => {
           chipC.className = 'chip ' + (c === 'agree' ? 'ok' : c === 'near' ? 'warn' : c === 'differ' ? 'bad' : ''); chipC.hidden = !c; });
         add(tb, el('tr', null, el('td', null, el('b', null, it.label)), mine, attCell, el('td', null, chipC)));
       }
+      const extra = [];
+      if (gid === 'd'){
+        const line = el('div', { class: 'diam' });
+        bind(() => { const g16 = diaCatOf('Diastology 2025!G107'), g25 = diaCatOf('Diastology 2025!G108'), a = String(INPUTS['Att!dia'] || ''), d = diaMatch(a, g16, g25);
+          const pill = (lab, g, ok) => el('span', { class: 'diap' + (g && d ? (ok ? ' ok' : ' no') : '') }, el('b', null, lab + ': '), g || 'not graded', g && d ? (ok ? ' ✓' : ' ✗') : '');
+          line.replaceChildren(el('span', { class: 'p-ref' }, 'Which guideline the attending matches'), pill('ASE 2025', g25, d && d.m25), pill('ASE/EACVI 2016', g16, d && d.m16),
+            d ? el('span', { class: 'chip ' + (d.t === 'Neither' ? 'bad' : d.t === 'Both' ? 'ok' : 'warn') }, d.t) : el('span', { class: 'p-ref' }, 'Choose the attending grade above'),
+            el('span', { class: 'p-ref', style: 'flex-basis:100%' }, 'Shown for comparison only; not counted in the agreement score.')); });
+        extra.push(line);
+      }
       add(body, el('section', { class: 'card attg' }, el('h2', null, gt), el('div', { class: 'tbl', style: 'margin:0' }, el('table', { class: 'atttbl' },
-        el('thead', null, el('tr', null, ['Item', 'Your read (from the workbook)', 'Attending', ''].map(t => el('th', null, t)))), tb))));
+        el('thead', null, el('tr', null, ['Item', 'Your read (from the workbook)', 'Attending', ''].map(t => el('th', null, t)))), tb)), ...extra));
     }
   };
   optBox.addEventListener('change', () => { try { localStorage.setItem(ATT_OPT, optBox.checked ? '1' : '0'); } catch (e) {} draw(); refresh(); });
@@ -5349,9 +5374,157 @@ page('compare', 'Compare with attending', 'report', root => {
   add(root, el('p', { class: 'lead' }, 'Enter the attending’s final read for this study. Your side fills in from the workbook; the agreement across studies is on the Quality dashboard. Enter only categories, never names or record numbers.'),
     el('div', { class: 'toolbar' }, el('label', null, 'Attending ', code.node), el('label', { for: 'attopt' }, optBox, ' Include optional items (LV and LA size, LV geometry, RV size, RA pressure, mitral stenosis, aorta)'),
       el('button', { class: 'btn small', type: 'button', style: 'margin-left:auto', onclick: () => { for (const k in DEFAULTS) if (k.startsWith('Att!') && k !== 'Att!code') INPUTS[k] = null; save(); for (const c of controls) c.sync(); refresh(); } }, 'Clear attending read')),
-    el('section', { class: 'card', style: 'margin-bottom:18px' }, head), body,
+    pastePanel(), el('section', { class: 'card', style: 'margin-bottom:18px' }, head), body,
     el('p', { class: 'foot' }, 'Agree = same category. One step apart = adjacent grade on an ordered scale (for example mild vs mild–moderate, or 50–55 vs 55–60%). For wall motion and cardiomyopathy, the same call (normal vs abnormal, none vs any) with a different territory or type is shown separately. Trace regurgitation counts as none.'));
 });
+
+/* ---------- prefill the attending read from pasted report text (added in this web version) ----------
+   The text is read once, in this browser, and discarded: it is never shown, saved or sent. Lines that carry
+   identifiers are dropped before anything is parsed. Only the findings the user applies are kept. */
+const ID_LINE = /\b(name|patient|pt\.?|mrn|medical record|record (no|number|#)|acct|account|fin|csn|encounter|dob|d\.o\.b|date of birth|birth ?date|age|sex|gender|ssn|social security|address|phone|tel|location|room|bed|referring|ordering|physician|provider|attending|sonographer|technologist|read by|signed|electronically|accession|order (no|number|#)|exam date|study date|date of (service|exam|study)|admission|visit|insurance|height|weight)\b/i;
+function scrubText(t){
+  return String(t || '').replace(/\r/g, '').split('\n')
+    .filter(l => !ID_LINE.test(l))
+    .map(l => l.replace(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g, ' ').replace(/\b\d{6,}\b/g, ' ').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, ' '))
+    .join('\n');
+}
+const PNEG = /\b(no|not|without|negative for|absence of|absent|free of|rule[sd]? out|r\/o|neither|nor)\b[^.;:]*$/i;
+/* split into clauses; keep the text before a term to check for negation */
+const pClauses = t => t.replace(/\n+/g, '. ').split(/(?<=[.;])\s+|•/).map(s => s.trim()).filter(Boolean);
+const pNeg = (c, idx) => PNEG.test(c.slice(Math.max(0, idx - 60), idx));
+const REG_WORDS = [[/torrential/i, 'Torrential'], [/massive/i, 'Massive'], [/moderate(?:ly)?[\s-]*(?:to|-|–)[\s-]*severe|mod(?:erate)?[\s-]*severe/i, 'Moderate–severe'], [/mild[\s-]*(?:to|-|–)[\s-]*moderate|mild[\s-]*mod(?:erate)?/i, 'Mild–moderate'],
+  [/severe/i, 'Severe'], [/moderate/i, 'Moderate'], [/mild/i, 'Mild'], [/trace|trivial|physiologic|minimal/i, 'None/trace']];
+const STEN_WORDS = [[/severe|critical/i, 'Severe'], [/moderate/i, 'Moderate'], [/mild/i, 'Mild']];
+function gradeNear(c, i, words, span){ const seg = c.slice(Math.max(0, i - (span || 45)), i + 25); for (const [re, v] of words) if (re.test(seg)) return v; return ''; }
+const VALVES = [
+  ['as', /\baortic (valve )?stenosis\b|\bAS\b(?!D)/, STEN_WORDS, 'None'],
+  ['ar', /\baortic (valve )?(regurgitation|insufficiency)\b|\b(AR|AI)\b/, REG_WORDS, 'None/trace'],
+  ['mr', /\bmitral (valve )?(regurgitation|insufficiency)\b|\bMR\b/, REG_WORDS, 'None/trace'],
+  ['tr', /\btricuspid (valve )?(regurgitation|insufficiency)\b|\bTR\b/, REG_WORDS, 'None/trace'],
+  ['ms', /\bmitral (valve )?stenosis\b|\bMS\b/, STEN_WORDS, 'None']];
+function parseReport(raw){
+  const text = scrubText(raw), C = pClauses(text), F = {}, why = {};
+  const set = (k, v, src) => { if (v && !(k in F)){ F[k] = v; why[k] = src; } };
+  const all = C.join(' . ');
+  /* LVEF: a range, a single value, or < / > */
+  { const m = /(?:LVEF|L\.?V\.?\s*E\.?F|\bEF\b|ejection fraction)[^.%\d<>]{0,40}?([<>≤≥]\s*\d{1,2}|\d{1,2}\s*(?:-|–|to)\s*\d{1,2}|\d{1,2}(?:\.\d)?)\s*%/i.exec(all);
+    if (m) set('Att!lvef', m[1].replace(/\s*to\s*/i, '–').replace(/\s*-\s*/, '–').replace(/\s+/g, ''), 'LVEF ' + m[1] + '%'); }
+  for (const c of C){
+    const lc = c.toLowerCase();
+    /* wall motion */
+    if (/wall motion|hypokines|akines|dyskines|aneurysm/.test(lc)){
+      const k = lc.search(/regional wall motion|wall motion abnormal|hypokines|akines|dyskines/);
+      if (/no (regional )?wall motion abnormal|wall motion (is |was )?normal|normal (regional )?wall motion/.test(lc)) set('Att!wm', 'Normal', 'no regional wall motion abnormality');
+      else if (k >= 0 && !pNeg(c, k)){
+        if (/global(ly)?|diffuse(ly)?/.test(lc)) set('Att!wm', 'Abnormal: diffuse or non-coronary', 'global/diffuse wall motion abnormality');
+        else { const t = new Set(), w = lc.replace(/inferolateral/g, ' IL ');
+          if (/anterior|anteroseptal|apical|apex/.test(w)) t.add('LAD');
+          if (/inferior|inferoseptal/.test(w)) t.add('RCA');
+          if (/lateral|posterior/.test(w)) t.add('LCx');
+          if (/ IL /.test(w) && !t.has('RCA')) t.add('LCx');          /* inferolateral goes with RCA when the inferior wall is also involved, otherwise with LCx */
+          set('Att!wm', t.size === 1 ? 'Abnormal: ' + [...t][0] : t.size > 1 ? 'Abnormal: multivessel' : 'Abnormal: diffuse or non-coronary', 'regional wall motion abnormality' + (t.size ? ' (' + [...t].join(', ') + ' walls)' : '')); }
+      }
+    }
+    /* RV function */
+    if (/right ventric|\brv\b/.test(lc) && /function|systolic|tapse|contract/.test(lc)){
+      if (/(reduced|decreased|depressed|impaired|abnormal|hypokinetic|dysfunction)/.test(lc) && !/normal (rv|right)/.test(lc) && !pNeg(c, lc.search(/reduced|decreased|depressed|impaired|abnormal|hypokinetic|dysfunction/))) set('Att!rvf', 'Reduced', 'reduced RV systolic function');
+      else if (/normal/.test(lc)) set('Att!rvf', 'Normal', 'normal RV systolic function');
+    }
+    /* valves */
+    for (const [id, re, words, none] of VALVES){
+      const m = re.exec(c); if (!m) continue;
+      if (pNeg(c, m.index) && !gradeNear(c, m.index, words, 20)) { set('Att!' + id, none, 'no ' + m[0]); continue; }
+      const gr = gradeNear(c, m.index, words); if (gr) set('Att!' + id, gr, gr.toLowerCase() + ' ' + m[0]);
+    }
+    if (/no significant (valv|valve)|valves? (are|is|appear) (structurally )?normal|normal valv|no (hemodynamically )?significant valvular/.test(lc)){
+      for (const [id, , , none] of VALVES) set('Att!' + id, none, 'no significant valve disease');
+    }
+    /* pulmonary pressure */
+    if (/pulmonary (artery|arterial) |pulmonary hypertension|\bpasp\b|\brvsp\b|\bph\b/.test(lc)){
+      if (/high (echocardiographic )?probability/.test(lc)) set('Att!ph', 'High', 'high probability of PH');
+      else if (/intermediate (echocardiographic )?probability/.test(lc)) set('Att!ph', 'Intermediate', 'intermediate probability of PH');
+      else if (/low (echocardiographic )?probability|normal (estimated )?(pulmonary|pa|rv)|no (evidence of )?pulmonary hypertension/.test(lc)) set('Att!ph', 'Low', 'low probability / normal pulmonary pressure');
+      else if (/(moderate|severe)(ly)? (elevated|increased|pulmonary hypertension)/.test(lc)) set('Att!ph', 'High', 'moderate–severe pulmonary hypertension');
+      else if (/mild(ly)? (elevated|increased|pulmonary hypertension)/.test(lc)) set('Att!ph', 'Intermediate', 'mild pulmonary hypertension');
+    }
+    /* pericardial effusion */
+    { const k = lc.search(/pericardial effusion|effusion/); if (k >= 0 && /pericard/.test(lc)){
+      if (pNeg(c, k)) set('Att!peff', 'None', 'no pericardial effusion');
+      else { const gr = /large/.test(lc) ? 'Large' : /moderate/.test(lc) ? 'Moderate' : /small|trivial|trace|minimal/.test(lc) ? 'Small' : ''; if (gr) set('Att!peff', gr, gr.toLowerCase() + ' pericardial effusion'); } } }
+    /* diastolic function */
+    if (/diastol|relaxation|filling pressure|left atrial pressure|\blap\b/.test(lc)){
+      if (/indeterminate/.test(lc)) set('Att!dia', 'Indeterminate', 'indeterminate diastolic function');
+      else if (/grade (iii|3)\b|restrictive filling/.test(lc)) set('Att!dia', 'Grade 3', 'grade III diastolic dysfunction');
+      else if (/grade (ii|2)\b|pseudonormal/.test(lc)) set('Att!dia', 'Grade 2', 'grade II diastolic dysfunction');
+      else if (/grade (i|1)\b|impaired (lv )?relaxation|abnormal relaxation/.test(lc)) set('Att!dia', 'Grade 1', 'grade I diastolic dysfunction');
+      else if (/normal (lv |left ventricular )?diastolic function|diastolic function (is |was )?normal/.test(lc)) set('Att!dia', 'Normal', 'normal diastolic function');
+      else if (/(elevated|increased) (left atrial|lv filling|left ventricular filling|filling) pressure/.test(lc) && !pNeg(c, lc.search(/elevated|increased/))) set('Att!dia', 'Elevated LAP, no grade', 'elevated filling pressure, no grade');
+    }
+    /* actionable findings */
+    for (const [re, which] of [[/tamponade/, 'Tamponade'], [/dissection/, 'Aortic dissection'], [/thromb/, 'Thrombus or mass'], [/vegetation/, 'Vegetation'], [/\bmass\b/, 'Thrombus or mass']]){
+      const k = lc.search(re); if (k >= 0){ if (pNeg(c, k)) { if (!('Att!crit' in F)) why._critNo = true; } else { set('Att!crit', 'Yes', which.toLowerCase()); set('Att!crit_which', which, which.toLowerCase()); } }
+    }
+    if (/critical (result|value|finding)|(called|communicated|discussed|notified) (to|with)/.test(lc) && !pNeg(c, lc.search(/critical|called|communicated|discussed|notified/))) set('Att!crit', 'Yes', 'critical result communicated');
+    for (const [re, v] of [[/dilated cardiomyopathy|\bdcm\b|non-?ischemic cardiomyopathy/, 'Dilated'], [/hypertrophic (obstructive )?cardiomyopathy|\bh(o)?cm\b|asymmetric septal hypertrophy/, 'Hypertrophic'], [/amyloid|infiltrative/, 'Infiltrative (consider amyloid)'],
+      [/takotsubo|stress (induced )?cardiomyopathy|apical ballooning/, 'Takotsubo'], [/restrictive cardiomyopathy/, 'Restrictive'], [/arrhythmogenic|\barvc\b/, 'Arrhythmogenic RV'], [/non-?compaction|hypertrabeculation/, 'Other']]){
+      const k = lc.search(re); if (k >= 0 && !pNeg(c, k)) set('Att!cm', v, v.toLowerCase());
+    }
+    /* optional items */
+    const size = (re, key, src) => { const k = lc.search(re); if (k < 0) return; const seg = lc.slice(Math.max(0, k - 40), k + 60);
+      const v = /severe(ly)? (dilat|enlarg)/.test(seg) ? 'Severely dilated' : /moderate(ly)? (dilat|enlarg)/.test(seg) ? 'Moderately dilated' : /mild(ly)? (dilat|enlarg)/.test(seg) ? 'Mildly dilated' : /(normal\b[^.]{0,30}\bsize|size (is )?normal|not dilated|normal(ly)? sized)/.test(seg) ? 'Normal' : /dilat|enlarg/.test(seg) ? 'Mildly dilated' : '';
+      if (v) set(key, v, src + ': ' + v.toLowerCase()); };
+    size(/left ventric(le|ular)(?! (systolic|diastolic|ejection|outflow|wall motion))|\blv\b(?! (systolic|diastolic|ejection|outflow|function))/, 'Att!lvsize', 'LV size');
+    size(/left atri(um|al)|\bla\b/, 'Att!lasize', 'LA size');
+    if (/right ventric|\brv\b/.test(lc) && /dilat|enlarg|normal\b[^.]{0,30}\bsize|size (is )?normal/.test(lc)) set('Att!rvsize', /dilat|enlarg/.test(lc) && !pNeg(c, lc.search(/dilat|enlarg/)) ? 'Dilated' : 'Normal', 'RV size: ' + (/dilat|enlarg/.test(lc) ? 'dilated' : 'normal'));
+    if (/concentric (lv |left ventricular )?hypertrophy/.test(lc)) set('Att!lvgeo', 'Concentric hypertrophy', 'concentric hypertrophy');
+    else if (/concentric remodel/.test(lc)) set('Att!lvgeo', 'Concentric remodeling', 'concentric remodeling');
+    else if (/eccentric (lv |left ventricular )?hypertrophy/.test(lc)) set('Att!lvgeo', 'Eccentric hypertrophy', 'eccentric hypertrophy');
+    { const m = /(?:right atrial|\bra\b) pressure[^.\d]{0,30}(\d{1,2})/.exec(lc); if (m){ const n = +m[1]; set('Att!rap', n <= 5 ? '3 mmHg' : n <= 10 ? '8 mmHg' : '15 mmHg', 'RA pressure ' + n); } }
+    if (/aort(a|ic root)|ascending/.test(lc)){ const k = lc.search(/dilat|aneurysm|enlarg/); if (k >= 0 && !pNeg(c, k)) set('Att!aorta', 'Dilated', 'dilated aorta'); else if (/normal (in )?size|not dilated|normal (aortic|aorta)/.test(lc)) set('Att!aorta', 'Normal', 'normal aorta'); }
+  }
+  return { F, why };
+}
+/* the panel on the Compare page */
+function pastePanel(){
+  let found = {};       // key -> {v, src}
+  let pastes = 0;
+  const list = el('div', { class: 'pfl' }), status = el('p', { class: 'p-ref' });
+  const zone = el('textarea', { class: 'fld pzone', rows: 2, placeholder: 'Tap here and choose Paste (or press Ctrl/⌘+V). The text is read and discarded, never shown.', 'aria-label': 'Paste the attending report text here', autocomplete: 'off', spellcheck: 'false' });
+  const take = txt => {
+    if (!txt || !txt.trim()) return; pastes++;
+    const { F, why } = parseReport(txt);       // the text goes no further than this line
+    for (const k in F) found[k] = { v: F[k], src: why[k], n: pastes };
+    txt = null; draw();
+  };
+  zone.addEventListener('paste', e => { e.preventDefault(); take((e.clipboardData || window.clipboardData).getData('text')); zone.value = ''; });
+  zone.addEventListener('input', () => { const t = zone.value; zone.value = ''; if (t.length > 20) take(t); });      // typed or dictated text, or a paste the browser did not report
+  const clipBtn = el('button', { class: 'btn small', type: 'button', onclick: async () => { try { take(await navigator.clipboard.readText()); } catch (e) { toast('The browser did not allow reading the clipboard. Tap the box and choose Paste.'); } } }, 'Paste from clipboard');
+  const applyBtn = el('button', { class: 'btn small primary', type: 'button' }, 'Apply selected'), clearBtn = el('button', { class: 'btn small', type: 'button', onclick: () => { found = {}; pastes = 0; draw(); } }, 'Discard');
+  const labelOf = k => k === 'Att!lvef' ? 'LVEF (%)' : k === 'Att!crit_which' ? 'Critical finding: which' : (ATT.find(i => attKey(i) === k) || {}).label || k;
+  const checks = new Map();
+  function draw(){
+    list.replaceChildren(); checks.clear();
+    const keys = Object.keys(found);
+    status.textContent = !pastes ? 'Copy the impression or summary from the attending report (on iPhone, Live Text in Photos or Camera lets you select and copy text from a picture), then paste it here. Paste several parts one after the other if needed.'
+      : keys.length ? keys.length + ' finding' + (keys.length > 1 ? 's' : '') + ' recognized from ' + pastes + ' paste' + (pastes > 1 ? 's' : '') + '. Lines with names, numbers or dates were ignored and the text was discarded. Untick anything wrong, then apply.'
+      : 'Nothing recognized in ' + pastes + ' paste' + (pastes > 1 ? 's' : '') + '. The text was discarded. Try copying the impression section only.';
+    applyBtn.hidden = clearBtn.hidden = !keys.length;
+    const order = ['Att!lvef'].concat(ATT.filter(i => !i.input).map(attKey), ['Att!crit_which']);
+    for (const k of order){ if (!found[k]) continue;
+      const cur = INPUTS[k], differs = cur != null && cur !== '' && cur !== found[k].v;
+      const cb = el('input', { type: 'checkbox' }); cb.checked = true; checks.set(k, cb);
+      add(list, el('label', { class: 'pf' }, cb, el('span', { class: 'pfk' }, labelOf(k)), el('b', null, found[k].v),
+        el('span', { class: 'p-ref' }, 'from “' + found[k].src + '”' + (differs ? ' · replaces ' + cur : cur === found[k].v ? ' · already entered' : ''))));
+    }
+  }
+  applyBtn.addEventListener('click', () => { let n = 0; for (const [k, cb] of checks) if (cb.checked){ INPUTS[k] = found[k].v; n++; }
+    save(); for (const c of controls) c.sync(); refresh(); found = {}; pastes = 0; draw(); toast(n + ' finding' + (n === 1 ? '' : 's') + ' applied. Check the rest by hand.'); });
+  draw();
+  return el('section', { class: 'card pastecard' }, el('h2', null, 'Prefill from the attending report'),
+    el('div', { class: 'prow2' }, zone, clipBtn), status, list, el('div', { class: 'toolbar', style: 'margin:8px 0 0' }, applyBtn, clearBtn),
+    el('p', { class: 'p-ref', style: 'margin-top:8px' }, 'Privacy: the pasted text is read once in this browser to find the findings, then discarded. It is never displayed, saved or sent anywhere. Lines with names, record numbers, dates of birth or other identifiers are dropped before reading. Copy only the impression when you can. Items not recognized stay blank.'));
+}
+
 /* the header button: Save study's neighbour */
 function attHeaderBtn(){
   const a = el('a', { class: 'btn small', href: '#compare', title: 'Compare with the attending’s read' }, 'Attending', el('span', { class: 'attbadge' }));
@@ -5383,6 +5556,11 @@ function attDashboard(list){
     add(out, el('p', { class: 'qbig' }, tot.length ? Math.round(100 * tot.reduce((s, v) => s + v, 0) / tot.length) + '%' : '—', el('span', null, ' mean concordance per study · ' + R.length + ' studies with an attending read')),
       el('div', { class: 'tbl', style: 'margin:0' }, el('table', { class: 'atttbl' }, el('thead', null, el('tr', null, ['Item', 'Pairs', 'Exact', 'Within one step', 'κ (95% CI)', ''].map(t => el('th', null, t)))), tb)),
       el('p', { class: 'p-ref', style: 'margin-top:8px' }, efLine),
+      (() => { const D = R.map(r => r.dm).filter(Boolean); if (!D.length) return null; const cats = ['Both', 'ASE 2025 only', 'ASE/EACVI 2016 only', 'Neither'];
+        const n25 = D.filter(d => d.m25).length, n16 = D.filter(d => d.m16).length;
+        return el('div', { class: 'diadash' }, el('h3', null, 'Diastology: which guideline the attending’s grade matches'), el('p', { class: 'p-ref' }, D.length + ' studies with an attending grade · shown for comparison, not part of the agreement statistics'),
+          qdBars(cats.map(c => [c, pct(D.filter(d => d.t === c).length, D.length), c + ': ' + D.filter(d => d.t === c).length + ' of ' + D.length]), { max: 100 }),
+          el('p', { class: 'p-ref', style: 'margin-top:6px' }, 'Matches ASE 2025 in ' + pct(n25, D.length) + '% · matches ASE/EACVI 2016 in ' + pct(n16, D.length) + '%.')); })(),
       el('p', { class: 'p-ref' }, 'Weighted κ (linear weights) for ordered scales; for diastolic function only on studies both readers graded, with indeterminate counted in Exact. 95% CI by bootstrap. κ with fewer than about 30 pairs is imprecise. Interpretation after Landis and Koch.'));
   };
   sel.addEventListener('change', draw); draw();
