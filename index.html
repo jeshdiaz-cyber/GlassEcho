@@ -294,7 +294,7 @@ pre.full{white-space:pre-wrap; font:14px/1.5 var(--body); margin:0; max-height:4
 }
 @media (max-width:820px){
   body{display:block}
-  .rail{position:fixed; inset:0 auto 0 0; width:min(300px,86vw); z-index:40; transform:translateX(-102%); transition:transform .2s; height:auto; padding-top:calc(18px + env(safe-area-inset-top,0px)); padding-bottom:calc(20px + env(safe-area-inset-bottom,0px)); box-shadow:0 0 0 100vmax rgba(0,0,0,0)}
+  .rail{position:fixed; inset:0 auto 0 0; width:min(300px,86vw); z-index:40; transform:translateX(-102%); transition:transform .2s; height:100vh; height:100dvh; max-height:100dvh; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; padding-top:calc(18px + env(safe-area-inset-top,0px)); padding-bottom:calc(20px + env(safe-area-inset-bottom,0px)); box-shadow:0 0 0 100vmax rgba(0,0,0,0)}
   .rail.open{transform:none; box-shadow:0 0 0 100vmax rgba(0,0,0,.45)}
   #menu{display:inline-block}
   .bar{padding:8px 14px; gap:10px}
@@ -662,6 +662,14 @@ td.dd{background:color-mix(in srgb,var(--warn-bg) 55%,transparent)}
 .pfl{display:grid; gap:6px; margin-top:10px}
 .pf{display:grid; grid-template-columns:auto minmax(0,14em) auto minmax(0,1fr); gap:8px; align-items:baseline; font-size:14px; padding:6px 8px; border-radius:var(--r-sm); background:var(--sunk)}
 @media (max-width:620px){ .pf{grid-template-columns:auto minmax(0,1fr)} .pf b, .pf .p-ref{grid-column:2} }
+.attdiff{list-style:none; padding:0; margin:10px 0 0; font-size:14px} .attdiff li{padding:5px 0; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; gap:4px 8px; align-items:center} .attdiff li:first-child{border-top:0}
+.attchip{border:0; cursor:pointer; font:inherit; font-size:13px} .attchip:hover{filter:brightness(.95); text-decoration:underline}
+.measpaste{margin-bottom:16px} .measpaste > summary{cursor:pointer; list-style:none} .measpaste > summary h2{display:inline; font-size:17px} .measpaste > summary::after{content:" ▾"; color:var(--muted)}
+.prow.fromrep{background:color-mix(in srgb,var(--accent-soft) 60%,transparent)} .prow.fromrep .p-label label::after{content:" · from report"; font-size:11.5px; color:var(--accent); font-weight:600}
+.clipbtn{min-height:44px; padding:0 18px; font-size:15px}
+.clipwrap{display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; margin:4px 0 10px}
+.measpaste > summary{display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; justify-content:space-between} .measpaste > summary::after{order:-1; display:none}
+.pfdone{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0}
 </style>
 </head>
 <body>
@@ -2856,8 +2864,11 @@ function paspEchoNote(){ bind(() => {
 /* ---------- Reading time, coded indication and image quality, protocol items (added in this web version) ----------
    Reading time is kept as a duration in seconds (no clock times are saved with the study).
    The indication, image-quality reasons, missing windows and enhancing agent are pick-lists so they can be counted. */
-const IND_CODES = ['Chest pain or suspected ischemia', 'Dyspnea or suspected heart failure', 'Known heart failure or cardiomyopathy, follow-up', 'Murmur or suspected valve disease',
-  'Known valve disease, follow-up', 'Prosthetic valve evaluation', 'Syncope or presyncope', 'Palpitations or arrhythmia', 'Atrial fibrillation or flutter',
+/* older saved studies used 'Known …, follow-up' names; they read as the new names */
+const IND_OLD = { 'Known heart failure or cardiomyopathy, follow-up': 'Heart failure or cardiomyopathy', 'Known valve disease, follow-up': 'Valve disease', 'Heart failure or cardiomyopathy, follow-up': 'Heart failure or cardiomyopathy', 'Valve disease, follow-up': 'Valve disease' };
+const indNorm = v => typeof v === 'string' ? (IND_OLD[v] || v.replace(/^known\s+/i, '').replace(/[,;:\s-]*\(?\s*follow[\s-]?up\s*\)?\s*$/i, '').replace(/^./, c => c.toUpperCase())) : v;
+const IND_CODES = ['Chest pain or suspected ischemia', 'Dyspnea or suspected heart failure', 'Heart failure or cardiomyopathy', 'Murmur or suspected valve disease',
+  'Valve disease', 'Prosthetic valve evaluation', 'Syncope or presyncope', 'Palpitations or arrhythmia', 'Atrial fibrillation or flutter',
   'Stroke, transient ischemic attack or embolic event', 'Suspected endocarditis or bacteremia', 'Pericardial effusion or pericardial disease', 'Pulmonary hypertension evaluation',
   'Suspected pulmonary embolism', 'Hypertension or left ventricular hypertrophy', 'Cardio-oncology (before or during cancer therapy)', 'Preoperative assessment',
   'Abnormal electrocardiogram', 'Congenital heart disease', 'Aortic disease or aortic dilation', 'Hypotension, shock or hemodynamic instability',
@@ -2947,7 +2958,7 @@ function studyCounts(list){
   const split = v => String(v || '').split(/\s*,\s*/).filter(Boolean);
   const secs = recs.map(o => o[TM.sec]).filter(s => typeof s === 'number' && s > 0).sort((a, b) => a - b);
   const med = secs.length ? (secs.length % 2 ? secs[(secs.length - 1) / 2] : (secs[secs.length / 2 - 1] + secs[secs.length / 2]) / 2) : null;
-  const ind = recs.map(o => o['Report!C11'] || (o['Report!B11'] ? 'Free text only (not coded)' : 'Not entered'));
+  const ind = recs.map(o => indNorm(o['Report!C11']) || (o['Report!B11'] ? 'Free text only (not coded)' : 'Not entered'));
   return { n, timed: secs.length, med, mean: secs.length ? secs.reduce((a, b) => a + b, 0) / secs.length : null, total: secs.reduce((a, b) => a + b, 0),
     ind: tally(ind), iq: tally(recs.map(o => o['Report!B22'] || 'Not entered')), why: tally(recs.flatMap(o => split(o['Report!B23']))), win: tally(recs.flatMap(o => split(o['Report!B24']))),
     uea: tally(recs.map(o => o['Report!B19'] || 'Not entered')), agent: tally(recs.filter(o => o['Report!B19'] === 'Yes').map(o => o['Report!C20'] || 'Agent not entered')),
@@ -3159,7 +3170,8 @@ function lastReplaced(){ try { const u = JSON.parse(localStorage.getItem(UNDO) |
 function keepForUndo(){ if (!filled(INPUTS)) return; try { localStorage.setItem(UNDO, JSON.stringify({ inputs: Object.assign({}, INPUTS), current, dirty, at: new Date().toISOString() })); } catch (e) {} }
 function bringBack(){ const u = lastReplaced(); if (!u) return false; const d = !!u.dirty; loadStudy(u.inputs, u.current || null); dirty = d; saveMeta(); refresh(); return true; }
 const DROP_KEYS = ['Report!B13', 'Report!B35', 'Report!B48', 'Qual!ID_dob'];        // fields this version no longer keeps: examination date, prior study date, date of birth
-function loadStudy(obj, meta){ keepForUndo(); for (const k in INPUTS) delete INPUTS[k]; Object.assign(INPUTS, obj); for (const k of DROP_KEYS) if (k in INPUTS) INPUTS[k] = k in DEFAULTS ? null : undefined; save(); current = meta || { id: null, savedAt: null }; dirty = false; saveMeta(); for (const c of controls) c.sync(); refresh(); }
+setTimeout(() => { for (const k of ['Report!C11', 'Report!B11']) if (typeof INPUTS[k] === 'string' && indNorm(INPUTS[k]) !== INPUTS[k]){ INPUTS[k] = indNorm(INPUTS[k]); save(); refresh(); for (const c of controls) c.sync(); } }, 0);
+function loadStudy(obj, meta){ keepForUndo(); for (const k in INPUTS) delete INPUTS[k]; Object.assign(INPUTS, obj); for (const k of ['Report!C11', 'Report!B11']) if (typeof INPUTS[k] === 'string') INPUTS[k] = indNorm(INPUTS[k]); for (const k of DROP_KEYS) if (k in INPUTS) INPUTS[k] = k in DEFAULTS ? null : undefined; save(); current = meta || { id: null, savedAt: null }; dirty = false; saveMeta(); for (const c of controls) c.sync(); refresh(); }
 function emptyStudy(){ const o = {}; for (const k in DEFAULTS) o[k] = MUST.includes(k) ? DEFAULTS[k] : null; return o; }
 function exampleStudy(){ return Object.assign({}, DEFAULTS); }
 function blankStudy(){ const o = {}; const keep = new Set(M.keep); for (const k in DEFAULTS) o[k] = keep.has(k) ? DEFAULTS[k] : null; return o; }
@@ -4057,7 +4069,7 @@ page('overview', 'Study overview', 'start', root => {
     el('section', { class: 'card' }, el('h3', null, el('i', null, '3'), 'Finish the report'), el('ul', null,
       el('li', null, link('report', 'Report'), el('span', null, 'Indication, image quality and prior study, then copy the summary or the full report.')))));
   add(root, el('div', { class: 'toolbar' }, el('button', { class: 'btn primary', type: 'button', data: { newcase: '1' } }, 'Start a new case'), el('span', { class: 'p-ref' }, 'Empties the fields, collapses every section and opens Echo measurements.')),
-    el('div', { class: 'ov' }, el('div', { style: 'display:grid;gap:18px' }, card, glance, el('section', { class: 'card' }, el('h2', null, 'Cardiomyopathy suggestion'), cmpBlock(), el('p', { class: 'p-ref', style: 'margin-top:10px' }, 'Worked out from the numbers entered; not diagnoses. Details on the ', link('cmp', 'Cardiomyopathies page'), '.'))), el('div', { style: 'display:grid;gap:18px' }, wm, comp)), diaCard(), steps,
+    el('div', { class: 'ov' }, el('div', { style: 'display:grid;gap:18px' }, card, glance, attOverviewCard(), el('section', { class: 'card' }, el('h2', null, 'Cardiomyopathy suggestion'), cmpBlock(), el('p', { class: 'p-ref', style: 'margin-top:10px' }, 'Worked out from the numbers entered; not diagnoses. Details on the ', link('cmp', 'Cardiomyopathies page'), '.'))), el('div', { style: 'display:grid;gap:18px' }, wm, comp)), diaCard(), steps,
     el('p', { class: 'foot' }, M.echoNote));
 });
 
@@ -4198,7 +4210,7 @@ page('echo', 'Echo measurements', 'enter', root => {
   };
   /* indication: the same line as on the Report page, entered here with the patient details */
   const indRow = sec => { const key = 'Report!B11'; sec.inputs.push(key); const f = field(key, { t: 'text' });
-    const dl = el('datalist', { id: 'ind-list' }, ['Chest pain', 'Shortness of breath', 'Heart murmur', 'Heart failure', 'Syncope', 'Palpitations or arrhythmia', 'Atrial fibrillation', 'Stroke or transient ischaemic attack: cardiac source of embolism', 'Suspected endocarditis', 'Hypertension', 'Known valve disease, follow-up', 'Prosthetic valve, follow-up', 'Cardiomyopathy, follow-up', 'Pericardial effusion', 'Pulmonary hypertension', 'Suspected pulmonary embolism', 'Before or during chemotherapy', 'Preoperative assessment', 'Abnormal electrocardiogram', 'Congenital heart disease'].map(t => el('option', { value: t })));
+    const dl = el('datalist', { id: 'ind-list' }, ['Chest pain', 'Shortness of breath', 'Heart murmur', 'Heart failure', 'Syncope', 'Palpitations or arrhythmia', 'Atrial fibrillation', 'Stroke or transient ischaemic attack: cardiac source of embolism', 'Suspected endocarditis', 'Hypertension', 'Valve disease', 'Prosthetic valve', 'Cardiomyopathy', 'Pericardial effusion', 'Pulmonary hypertension', 'Suspected pulmonary embolism', 'Before or during chemotherapy', 'Preoperative assessment', 'Abnormal electrocardiogram', 'Congenital heart disease'].map(t => el('option', { value: t })));
     f.node.setAttribute('list', 'ind-list'); f.node.setAttribute('placeholder', 'Why the study was requested'); f.node.style.maxWidth = '100%';
     return [el('div', { class: 'prow', id: 'echo-q-indication', data: { input: key, view: '00 Clinical' } }, el('div', { class: 'p-label' }, el('label', { for: f.id }, 'Indication'), el('p', { class: 'p-ref' }, 'No abbreviations · no names, record numbers or dates · goes into the report')), el('div', { class: 'p-val wide' }, f.node, dl))]; };
   const plan = [
@@ -4263,7 +4275,7 @@ page('echo', 'Echo measurements', 'enter', root => {
   q.addEventListener('input', apply);
   add(pick, el('button', { type: 'button', data: { v: '' }, 'aria-pressed': 'true', onclick: () => { view = ''; apply(); } }, 'All sections'));
   for (const v of views) add(pick, el('button', { type: 'button', data: { v }, 'aria-pressed': 'false', onclick: () => { view = v; apply(); } }, v.replace(/^\d+\s/, '')));
-  add(root, el('p', { class: 'lead' }, 'Type into the boxes. Everything else is calculated, with the formula and your numbers shown under each calculated value. Interpretations are green for normal, amber for mild to moderate and red for severe or abnormal. Leave a box empty for anything you did not measure. Sections start collapsed: click a title to open it, or use Expand all. Each section names its source. Chambers, flow, pressures, diastology and pericardium come first and the valves last, each valve with its qualitative criteria before the measurements. Pick a view to enter values in scanning order, or search by name.'),
+  add(root, el('p', { class: 'lead' }, 'Type into the boxes. Everything else is calculated, with the formula and your numbers shown under each calculated value. Interpretations are green for normal, amber for mild to moderate and red for severe or abnormal. Leave a box empty for anything you did not measure. Sections start collapsed: click a title to open it, or use Expand all. Each section names its source. Chambers, flow, pressures, diastology and pericardium come first and the valves last, each valve with its qualitative criteria before the measurements. Pick a view to enter values in scanning order, or search by name.'), measPanel(),
     el('div', { class: 'toolbar' }, q, el('button', { class: 'btn small', type: 'button', onclick: () => foldAll(true) }, 'Expand all'), el('button', { class: 'btn small', type: 'button', onclick: () => foldAll(false) }, 'Collapse all')), el('div', { class: 'toolbar' }, pick), none, echoSecs.map(s => s.node), el('p', { class: 'foot' }, M.echoNote));
 });
 
@@ -4942,6 +4954,7 @@ function snapshotRecord(){
     statement: st.slice(0, 600), crit: st.startsWith('CRITICAL'), n: Object.keys(ins).filter(k => !MUST.includes(k)).length, inputs: JSON.stringify(ins) };
   if (typeof ef === 'number') rec.lvef = Math.round(ef * 10) / 10;
   if (ins[TM.sec] > 0) rec.readMin = Math.round(ins[TM.sec] / 6) / 10;
+  { const a = attStudy(INPUTS); if (a.n) rec.att = { a: a.agree, n: a.n, code: String(INPUTS['Att!code'] || '') }; }
   rec.dia25 = showVal(g('Diastology 2025!B91')); rec.dia16 = showVal(g('Echo!B200')); rec.diaMatch = showVal(g('Diastology 2025!F108'));
   return rec;
 }
@@ -4998,7 +5011,7 @@ function exportColumns(){
   rows('Diastology 2025', 'Diastology', M.dia); rows('Prosthetic Valves', 'Prosthesis', M.pv);
   M.report.groups.forEach(gr => gr.rows.forEach(r => { if (r.in) cols.push({ k: r.k || K('Report', 'B' + r.r), h: 'Report: ' + r.a.trim() }); }));
   cols.push({ k: 'Diastology 2025!G27', h: 'Diastology: PASP entered (mmHg)' });
-  cols.push({ k: EFR, h: 'Fellow LVEF range (%)' }, { k: 'Att!code', h: 'Attending: code' }, { k: 'Att!lvef', h: 'Attending: LVEF (%)' }); for (const it of ATT) if (!it.input) cols.push({ k: attKey(it), h: 'Attending: ' + it.label }); cols.push({ k: 'Att!crit_which', h: 'Attending: critical finding' });
+  cols.push({ k: EFR, h: 'Fellow LVEF range (%)' }, { k: 'Att!code', h: 'Attending: code' }, { k: 'Att!lvef', h: 'Attending: LVEF (%)' }); for (const it of ATT) if (!it.input) cols.push({ k: attKey(it), h: 'Attending: ' + it.label }); 
   return cols;
 }
 const EXPORT_OUT = [['BSA (m²)', 'Echo!B20'], ['LVEF used (%)', 'Echo!B43'], ['LVEF interpretation', 'Echo!D43'], ['LV mass index (g/m²)', 'Echo!B33'], ['Relative wall thickness', 'Echo!B31'], ['LV geometry', 'Echo!B34'], ['Wall-motion score index', 'Wall Motion!D27'],
@@ -5120,7 +5133,9 @@ page('studies', 'Saved studies', 'report', root => {
       open.addEventListener('click', () => openRecord(rec));
       const del = twiceBtn(el('button', { class: 'btn small quiet', type: 'button' }, 'Delete'), 'Delete', () => deleteRecord(rec)), dia = diaOf(rec);
       add(tb, el('tr', { class: current.id === rec.id ? 'rowhl' : null }, el('td', null, el('b', null, rec.pid || 'No ID'), current.id === rec.id ? el('span', { class: 'p-ref', style: 'display:block' }, dirty ? 'open now, with unsaved changes' : 'open now') : null),
-        el('td', { class: 'sc' }, rec.date || ''), el('td', { class: 'sc' }, fmtWhen(rec.savedAt)), el('td', { class: 'sc' }, typeof rec.lvef === 'number' ? fixed(rec.lvef, 0) + '%' : ''), el('td', { class: 'sc' }, typeof rec.readMin === 'number' ? minsText(rec.readMin * 60) : ''),
+        el('td', { class: 'sc' }, rec.date || ''), el('td', { class: 'sc' }, fmtWhen(rec.savedAt)), el('td', { class: 'sc' }, typeof rec.lvef === 'number' ? fixed(rec.lvef, 0) + '%' : ''), el('td', { class: 'sc' }, typeof rec.readMin === 'number' ? minsText(rec.readMin * 60) : ''), el('td', { class: 'sc' }, (() => { const go = () => { openRecord(rec); setTimeout(() => { location.hash = 'compare'; }, 0); };
+          return rec.att ? el('button', { type: 'button', class: 'chip attchip ' + (rec.att.a / rec.att.n >= 0.8 ? 'ok' : rec.att.a / rec.att.n >= 0.6 ? 'warn' : 'bad'), title: 'Open the attending comparison' + (rec.att.code ? ' (' + rec.att.code + ')' : ''), onclick: go }, rec.att.a + '/' + rec.att.n + ' ›')
+            : el('button', { type: 'button', class: 'btn small quiet', title: 'Open this study and add the attending read', onclick: go }, 'Add'); })()),
         el('td', { class: dia.m === 'Differs' ? 'dd' : null }, dia.a ? el('span', { class: 'chip ' + tone(dia.a) }, dia.a) : null),
         el('td', { class: dia.m === 'Differs' ? 'dd' : null }, dia.b ? el('span', { class: 'chip ' + tone(dia.b) }, dia.b) : null, dia.m === 'Differs' ? el('span', { class: 'p-ref', style: 'display:block;color:var(--warn)' }, 'Differs from 2025') : null),
         el('td', null, rec.crit ? el('span', { class: 'chip bad' }, 'Critical') : null, ' ', String(rec.statement || '').split('\n')[0].slice(0, 110)), el('td', { style: 'white-space:nowrap' }, open, ' ', del)));
@@ -5130,7 +5145,7 @@ page('studies', 'Saved studies', 'report', root => {
   }
   const counts = countsCard();
   Store.onchange = () => { scrubSaved(); render(); counts.render(); qualityRefresh(); }; bind(render); bind(counts.render);
-  add(root, where, tools, move, counts.node, el('div', { class: 'tbl', style: 'margin-top:0' }, el('table', null, el('thead', null, el('tr', null, ['Study code', 'Study entry date', 'Saved', 'LVEF', 'Read time', 'Diastology, ASE 2025', 'Diastology, ASE/EACVI 2016', 'Summary', ''].map(t => el('th', null, t)))), tb), empty),
+  add(root, where, tools, move, counts.node, el('div', { class: 'tbl', style: 'margin-top:0' }, el('table', null, el('thead', null, el('tr', null, ['Study code', 'Study entry date', 'Saved', 'LVEF', 'Read time', 'Attending', 'Diastology, ASE 2025', 'Diastology, ASE/EACVI 2016', 'Summary', ''].map(t => el('th', null, t)))), tb), empty),
     el('p', { class: 'foot' }, 'The Excel and CSV exports have one row per study: every entered measurement, the wall-motion scores, the report details and the main calculated results. The Excel file adds a second sheet that compares the two diastology classifications study by study. Opening a saved study replaces what is on screen; saving again updates the same record.'));
 });
 
@@ -5211,10 +5226,31 @@ const regGrade = t => { t = String(t || '').toLowerCase(); if (!t) return '';
 const stenGrade = t => { t = String(t || '').toLowerCase(); if (!t) return '';
   if (/severe/.test(t) && !/no significant/.test(t)) return 'Severe'; if (/moderate/.test(t)) return 'Moderate'; if (/mild/.test(t)) return 'Mild';
   if (/^no |none|no significant|sclerosis/.test(t)) return 'None'; return ''; };
+const PV_CATS = ['Normal function', 'Possible dysfunction', 'Significant dysfunction'];
+/* worst of the stenosis and regurgitation results of one prosthesis */
+function pvFn(st, rg){
+  const lev = t => { t = String(t || ''); if (!t || t === 'None' || /^Enter/.test(t)) return -1;
+    if (/significant|severe|\(ViV/i.test(t)) return 2; if (/possible|moderate/i.test(t)) return 1; if (/normal|mild/i.test(t)) return 0; return -1; };
+  const m = Math.max(lev(st), lev(rg)); return m < 0 ? '' : PV_CATS[m];
+}
 const WM_CATS = ['Normal', 'Abnormal: LAD', 'Abnormal: RCA', 'Abnormal: LCx', 'Abnormal: multivessel', 'Abnormal: diffuse or non-coronary'];
 const DIA_ORD = ['Normal', 'Grade 1', 'Grade 2', 'Grade 3'], DIA_CATS = DIA_ORD.concat(['Elevated LAP, no grade', 'Indeterminate']);
 const CM_CATS = ['None', 'Dilated', 'Hypertrophic', 'Infiltrative (consider amyloid)', 'Non-dilated LV', 'Restrictive', 'Takotsubo', 'Arrhythmogenic RV', 'Other'];
-const CRIT_CATS = ['Tamponade', 'Aortic dissection', 'Thrombus or mass', 'Vegetation', 'New severe LV dysfunction', 'New severe valve disease', 'Prosthetic valve dysfunction', 'Large effusion', 'RV strain with suspected PE', 'LVOT obstruction', 'Other'];
+const CRIT_CATS = ['Tamponade', 'Aortic dissection', 'Thrombus in transit', 'Intracardiac thrombus or mass', 'Vegetation', 'Acute RV dysfunction with suspected PE', 'New severe LV dysfunction', 'New severe aortic stenosis', 'Prosthetic valve dysfunction', 'New large pericardial effusion', 'LVOT obstruction at rest', 'Low cardiac output with hypotension', 'Other'];
+/* a set of critical findings as one canonical string: 'None' or the findings in list order */
+const critNorm = v => { const p = String(v || '').split(/\s*,\s*/).filter(x => CRIT_CATS.includes(x)); return p.length ? CRIT_CATS.filter(c => p.includes(c)).join(', ') : /None/.test(String(v || '')) ? 'None' : ''; };
+/* your critical findings, from the workbook's critical-result flags */
+function myCrit(){
+  const out = new Set(), t = k => s0(k);
+  if (t('Report!D14')) out.add('Tamponade'); if (t('Report!D15')) out.add('Aortic dissection'); if (t('Report!D16')) out.add('Thrombus in transit');
+  if (t('Report!D17')) out.add('Acute RV dysfunction with suspected PE'); if (t('Report!D18')) out.add('Other'); if (t('Report!D19')) out.add('New severe aortic stenosis');
+  if (t('Report!D20')) out.add('Prosthetic valve dysfunction'); if (t('Report!D21')) out.add('New large pericardial effusion'); if (t('Report!D22')) out.add('New severe LV dysfunction');
+  if (t('Report!D23')) out.add(/vegetation/i.test(t('Report!D23')) ? 'Vegetation' : 'Intracardiac thrombus or mass'); if (t('Report!D24')) out.add('LVOT obstruction at rest'); if (t('Report!D25')) out.add('Low cardiac output with hypotension');
+  return out.size ? CRIT_CATS.filter(c => out.has(c)).join(', ') : 'None';
+}
+/* pulmonary hypertension graded by the estimated PASP (mmHg): absent <=35, mild 36-49, moderate 50-59, severe >=60 */
+const PH_CATS = ['Absent', 'Mild', 'Moderate', 'Severe'];
+const phGrade = p => p <= 35 ? 'Absent' : p < 50 ? 'Mild' : p < 60 ? 'Moderate' : 'Severe';
 const s0 = k => { const v = g(k); return isErr(v) || v == null ? '' : String(v); };
 /* the items: your side comes from the workbook; ord = ordered scale (weighted kappa) */
 const ATT = [
@@ -5230,20 +5266,27 @@ const ATT = [
   { id: 'ar', grp: 'm', label: 'Aortic regurgitation', scale: REG6, ord: true, mine: () => regGrade(s0('Echo!D110')) || 'None/trace', auto: () => !regGrade(s0('Echo!D110')) },
   { id: 'mr', grp: 'm', label: 'Mitral regurgitation', scale: REG6, ord: true, mine: () => regGrade(s0('Echo!D144')) || 'None/trace', auto: () => !regGrade(s0('Echo!D144')) },
   { id: 'tr', grp: 'm', label: 'Tricuspid regurgitation', scale: TR8, ord: true, mine: () => regGrade(s0('Echo!D157')) || 'None/trace', auto: () => !regGrade(s0('Echo!D157')) },
-  { id: 'ph', grp: 'm', label: 'Pulmonary hypertension probability', scale: ['Low', 'Intermediate', 'High'], ord: true, mine: () => { const t = s0('Echo!B238'); return /^High/.test(t) ? 'High' : /^Intermediate/.test(t) ? 'Intermediate' : /^Low/.test(t) ? 'Low' : ''; } },
+  { id: 'ph', grp: 'm', label: 'Pulmonary hypertension', scale: PH_CATS, ord: true,
+    mine: () => { const p = g('Echo!B226'); if (typeof p === 'number') return phGrade(p); return /^Low/.test(s0('Echo!B238')) ? 'Absent' : ''; } },
   { id: 'peff', grp: 'm', label: 'Pericardial effusion', scale: ['None', 'Small', 'Moderate', 'Large'], ord: true, mine: () => { const t = s0('Echo!D258'); return /^No/.test(t) ? 'None' : /^Small/.test(t) ? 'Small' : /^Moderate/.test(t) ? 'Moderate' : /^Large/.test(t) ? 'Large' : ''; } },
   /* optional */
   { id: 'lvsize', grp: 'm', opt: true, label: 'LV size', scale: ['Normal', 'Mildly dilated', 'Moderately dilated', 'Severely dilated'], ord: true, mine: () => { const t = s0('Echo!D24'); return /Below|Normal/.test(t) ? 'Normal' : t; } },
-  { id: 'lvgeo', grp: 'm', opt: true, label: 'LV geometry', scale: ['Normal geometry', 'Concentric remodeling', 'Concentric hypertrophy', 'Eccentric hypertrophy'], ord: false, mine: () => s0('Echo!B34') },
+  { id: 'lvgeo', grp: 'm', label: 'LV geometry', scale: ['Normal geometry', 'Concentric remodeling', 'Concentric hypertrophy', 'Eccentric hypertrophy'], ord: false, mine: () => s0('Echo!B34') },
   { id: 'lasize', grp: 'm', opt: true, label: 'LA size', scale: ['Normal', 'Mildly dilated', 'Moderately dilated', 'Severely dilated'], ord: true, mine: () => s0('Echo!D193').replace(' LA', '') },
   { id: 'rvsize', grp: 'm', opt: true, label: 'RV size', scale: ['Normal', 'Dilated'], ord: true, mine: () => { const t = s0('Echo!D210'); return /Dilated/.test(t) ? 'Dilated' : /Normal/.test(t) ? 'Normal' : ''; } },
-  { id: 'rap', grp: 'm', opt: true, label: 'RA pressure', scale: ['3 mmHg', '8 mmHg', '15 mmHg'], ord: true, mine: () => { const n = g('Echo!B225'); return typeof n === 'number' ? Math.round(n) + ' mmHg' : ''; } },
-  { id: 'ms', grp: 'm', opt: true, label: 'Mitral stenosis', scale: STEN4, ord: true, mine: () => stenGrade(s0('Echo!D125')) || 'None', auto: () => !stenGrade(s0('Echo!D125')) },
-  { id: 'aorta', grp: 'm', opt: true, label: 'Aorta', scale: ['Normal', 'Dilated'], ord: true, mine: () => { const t = [s0('Echo!D242'), s0('Echo!D244')].join(' '); return /dilat|aneurysm/i.test(t) ? 'Dilated' : /normal/i.test(t) ? 'Normal' : ''; } },
+  { id: 'rap', grp: 'm', label: 'RA pressure', scale: ['3 mmHg', '8 mmHg', '15 mmHg'], ord: true, mine: () => { const n = g('Echo!B225'); return typeof n === 'number' ? Math.round(n) + ' mmHg' : ''; } },
+  { id: 'ms', grp: 'm', label: 'Mitral stenosis', scale: STEN4, ord: true, mine: () => stenGrade(s0('Echo!D125')) || 'None', auto: () => !stenGrade(s0('Echo!D125')) },
+  { id: 'aorta', grp: 'm', label: 'Aorta', scale: ['Normal', 'Dilated'], ord: true, mine: () => { const t = [s0('Echo!D242'), s0('Echo!D244')].join(' '); return /dilat|aneurysm/i.test(t) ? 'Dilated' : /normal/i.test(t) ? 'Normal' : ''; } },
+  /* prosthetic valves: one row per prosthesis present */
+  ...[['pv_ao', 'Aortic prosthesis', 'B6', 'B39', 'B52'], ['pv_mi', 'Mitral prosthesis', 'B55', 'B65', 'B78'], ['pv_tr', 'Tricuspid prosthesis', 'B81', 'B89', 'B95'], ['pv_pu', 'Pulmonary prosthesis', 'B98', 'B101', 'B105']].map(([id, label, kt, ks, kr]) => ({
+    id, grp: 'm', label, scale: PV_CATS, ord: true,
+    present: () => { const v = g('Prosthetic Valves!' + kt); return typeof v === 'string' && v !== '' && v !== 'None'; },
+    mine: () => { const v = g('Prosthetic Valves!' + kt); if (!(typeof v === 'string' && v !== '' && v !== 'None')) return ''; return pvFn(s0('Prosthetic Valves!' + ks), s0('Prosthetic Valves!' + kr)); } })),
   /* diastology */
   { id: 'dia', grp: 'd', label: 'Diastolic function', scale: DIA_CATS, ord: true, ordScale: DIA_ORD, mine: () => { const t = s0(String(g('Diastology 2025!B11')) === '2016' ? 'Diastology 2025!G107' : 'Diastology 2025!G108'); return t === 'Elevated LAP' ? 'Elevated LAP, no grade' : DIA_CATS.includes(t) ? t : ''; } },
   /* actionable findings */
-  { id: 'crit', grp: 'a', label: 'Critical finding', scale: ['No', 'Yes'], ord: false, which: true, mine: () => s0('Report!D26').trim() ? 'Yes' : 'No' },
+  { id: 'crit', grp: 'a', label: 'Critical findings', key: 'Att!critset', scale: ['None'].concat(CRIT_CATS), ord: false, two: true, multi: true, mine: () => myCrit(),
+    att: o => { const v = critNorm(o['Att!critset']); if (v) return v; return o['Att!crit'] === 'No' ? 'None' : o['Att!crit'] === 'Yes' ? (critNorm(o['Att!crit_which'] === 'Thrombus or mass' ? 'Intracardiac thrombus or mass' : o['Att!crit_which']) || 'Other') : ''; } },
   { id: 'cm', grp: 'a', label: 'Suggested cardiomyopathy', scale: CM_CATS, ord: false, two: true, mine: () => { let F = []; try { F = cmpFlags().F; } catch (e) {} const t = F.length ? F[0].t : '';
       return !t || /Borderline/.test(t) ? 'None' : /Dilated/.test(t) ? 'Dilated' : /Hypertrophic/.test(t) ? 'Hypertrophic' : /amyloid|Infiltrative/.test(t) ? 'Infiltrative (consider amyloid)' : /Non-dilated/.test(t) ? 'Non-dilated LV' : /Restrictive/.test(t) ? 'Restrictive' : /Takotsubo/.test(t) ? 'Takotsubo' : /RV/.test(t) ? 'Arrhythmogenic RV' : 'Other'; } }];
 /* which guideline the attending's diastolic grade matches (shown, not counted in the agreement) */
@@ -5253,13 +5296,20 @@ function diaMatch(att, g16, g25){
   const m16 = !!g16 && g16 === att, m25 = !!g25 && g25 === att;
   return { m16, m25, g16, g25, t: m16 && m25 ? 'Both' : m25 ? 'ASE 2025 only' : m16 ? 'ASE/EACVI 2016 only' : 'Neither' };
 }
-const ATT_GROUPS = [['m', 'Measurements and grades'], ['d', 'Diastology'], ['a', 'Actionable findings']];
-const attKey = it => 'Att!' + (it.input || it.id);
-Object.assign(DEFAULTS, { 'Att!code': null, 'Att!lvef': null, 'Att!crit_which': null }, Object.fromEntries(ATT.filter(i => !i.input).map(i => [attKey(i), null])));
+const ATT_GROUPS = [['lv', 'Left ventricle'], ['valves', 'Valves'], ['d', 'Diastolic function and left atrium'], ['rh', 'Right heart and pulmonary pressures'], ['ap', 'Aorta and pericardium'], ['a', 'Actionable findings']];
+{ const ORDER = [['lvsize', 'lv'], ['lvgeo', 'lv'], ['lvef_cat', 'lv'], ['lvef_bin', 'lv'], ['wm', 'lv'],
+    ['as', 'valves'], ['ar', 'valves'], ['ms', 'valves'], ['mr', 'valves'], ['tr', 'valves'], ['pv_ao', 'valves'], ['pv_mi', 'valves'], ['pv_tr', 'valves'], ['pv_pu', 'valves'],
+    ['dia', 'd'], ['lasize', 'd'], ['rvsize', 'rh'], ['rvf', 'rh'], ['rap', 'rh'], ['ph', 'rh'], ['aorta', 'ap'], ['peff', 'ap'], ['crit', 'a'], ['cm', 'a']];
+  const pos = new Map(ORDER.map(([id], i) => [id, i])); for (const it of ATT){ const o = ORDER.find(x => x[0] === it.id); if (o) it.grp = o[1]; delete it.opt; }
+  ATT.sort((a, b) => (pos.has(a.id) ? pos.get(a.id) : 99) - (pos.has(b.id) ? pos.get(b.id) : 99)); }
+const attKey = it => it.key || 'Att!' + (it.input || it.id);
+Object.assign(DEFAULTS, { 'Att!critset': null, 'Att!crit': null, 'Att!code': null, 'Att!pv_ao': null, 'Att!pv_mi': null, 'Att!pv_tr': null, 'Att!pv_pu': null, 'Att!lvef': null, 'Att!crit_which': null }, Object.fromEntries(ATT.filter(i => !i.input).map(i => [attKey(i), null])));
 const ATT_OPT = 'echo-workbook-att-optional';
-const attOptOn = () => { try { return localStorage.getItem(ATT_OPT) === '1'; } catch (e) { return false; } };
-const attItems = () => ATT.filter(i => !i.opt || attOptOn());
-const attVal = (it, o) => it.att ? it.att(o) : String(o[attKey(it)] || '');
+const attOptOn = () => true;
+const attItems = () => ATT.filter(i => (!i.opt || attOptOn()) && (!i.present || i.present() || INPUTS[attKey(i)]));
+const attStatItems = () => ATT.filter(i => !i.opt || attOptOn());
+const PH_OLD = { Low: 'Absent', Intermediate: '', High: '', Present: '' };      /* attending reads saved before the present/absent scale */
+const attVal = (it, o) => { const v = it.att ? it.att(o) : String(o[attKey(it)] || ''); if (it.id === 'ph' && v in PH_OLD) return PH_OLD[v]; return v; };
 /* compare one item: 'agree' | 'near' (one step on an ordered scale) | 'differ' | '' (not comparable) */
 function attCmp(it, m, a){
   if (!m || !a || a === 'Not reported') return '';
@@ -5309,8 +5359,8 @@ function attRecord(rec){
   ATTROWS.set(id, r); return r;
 }
 function attAgreement(recs){
-  return attItems().map(it => {
-    const P = recs.map(r => r.items[it.id]).filter(([m, a]) => m && a && a !== 'Not reported' && it.scale.includes(m) && it.scale.includes(a));
+  return attStatItems().map(it => {
+    const P = recs.map(r => r.items[it.id]).filter(([m, a]) => m && a && a !== 'Not reported' && (it.multi || (it.scale.includes(m) && it.scale.includes(a))));
     const n = P.length, ex = P.filter(([m, a]) => m === a).length, nr = P.filter(([m, a]) => attCmp(it, m, a) !== 'differ').length;
     let kk = null, how = '';
     if (it.two){ const n0 = it.id === 'wm' ? 'Normal' : 'None'; kk = kappaCI(P.map(([m, a]) => [m === n0 ? n0 : 'Abnormal', a === n0 ? n0 : 'Abnormal']), [n0, 'Abnormal'], false); how = 'κ, ' + (it.id === 'wm' ? 'normal vs abnormal' : 'none vs any'); }
@@ -5321,7 +5371,7 @@ function attAgreement(recs){
     const used = (side) => new Set(P.map(p => it.two ? (p[side] === (it.id === 'wm' ? 'Normal' : 'None') ? 0 : 1) : p[side])).size;
     if (n && (used(0) < 2 || used(1) < 2)){ kk = null; how = 'κ not defined: one reader used a single category'; }
     return { it, n, ex, nr, kk, how };
-  });
+  }).filter(x => !x.it.present || x.n);
 }
 /* ---------- the page ---------- */
 function attSelect(key, opts, blank){
@@ -5342,13 +5392,14 @@ page('compare', 'Compare with attending', 'report', root => {
           if (it.id === 'lvef_cat'){ const f = field('Att!lvef', { t: 'text' }); f.node.setAttribute('placeholder', 'e.g. 55–60 or 45'); f.node.style.maxWidth = '11em'; add(attCell, f.node, el('span', { class: 'p-ref', style: 'margin-left:8px' }, '% · typed as in the report')); }
           else { const sp = el('span', { class: 'p-ref' }); bind(() => { const e = efOfAtt(INPUTS); sp.textContent = e ? EF_BINS[e.bin] + ' (from the LVEF typed above)' : 'From the LVEF typed above'; }); add(attCell, sp); }
         } else {
-          add(attCell, attSelect(attKey(it), it.scale.concat(['Not reported'])));
-          if (it.which){ const w = attSelect('Att!crit_which', CRIT_CATS, 'Which finding'); const wrap = el('span', { style: 'margin-left:8px' }, w); bind(() => { wrap.hidden = INPUTS[attKey(it)] !== 'Yes'; }); add(attCell, wrap); }
+          if (it.multi){ const f = field(attKey(it), { t: 'multi', o: ['None'].concat(CRIT_CATS) }); add(attCell, f.node, el('p', { class: 'p-ref', style: 'margin-top:4px' }, 'Choose every finding the attending reported, or None.')); }
+          else add(attCell, attSelect(attKey(it), it.scale.concat(['Not reported'])));
+          if (false){ const w = attSelect('Att!crit_which', CRIT_CATS, 'Which finding'); const wrap = el('span', { style: 'margin-left:8px' }, w); bind(() => { wrap.hidden = INPUTS[attKey(it)] !== 'Yes'; }); add(attCell, wrap); }
         }
         bind(() => { const m = it.mine(), a = attVal(it, INPUTS), c = attCmp(it, m, a);
           mine.textContent = m ? m + (it.auto && it.auto() ? ' (default, not measured)' : it.id === 'lvef_bin' && !efChosen() ? ' (from the calculated LVEF)' : '') : 'Not assessed';
-          if (it.id === 'crit' && m === 'Yes') mine.textContent = 'Yes: ' + s0('Report!D26').split('\n')[0].replace(/^(CRITICAL RESULT|URGENT):\s*/, '').slice(0, 60);
-          chipC.textContent = c === 'agree' ? 'Agree' : c === 'near' ? (it.two ? 'Same call, different type' : 'One step apart') : c === 'differ' ? 'Differ' : '';
+
+          chipC.textContent = c === 'agree' ? 'Agree' : c === 'near' ? (it.multi ? 'Both found, different findings' : it.two ? 'Same call, different type' : 'One step apart') : c === 'differ' ? 'Differ' : '';
           chipC.className = 'chip ' + (c === 'agree' ? 'ok' : c === 'near' ? 'warn' : c === 'differ' ? 'bad' : ''); chipC.hidden = !c; });
         add(tb, el('tr', null, el('td', null, el('b', null, it.label)), mine, attCell, el('td', null, chipC)));
       }
@@ -5367,21 +5418,22 @@ page('compare', 'Compare with attending', 'report', root => {
     }
   };
   optBox.addEventListener('change', () => { try { localStorage.setItem(ATT_OPT, optBox.checked ? '1' : '0'); } catch (e) {} draw(); refresh(); });
+  let sig = ''; bind(() => { const s2 = attItems().map(i => i.id).join(); if (sig && s2 !== sig) setTimeout(draw, 0); sig = s2; });
   bind(() => { const s = attStudy(INPUTS); head.replaceChildren(
     el('div', { class: 'attbig' }, s.n ? el('b', null, s.agree + ' of ' + s.n) : el('b', null, '—'), el('span', null, s.n ? ' items agree' + (s.near ? ' · ' + (s.agree + s.near) + ' within one step' : '') : ' Fill in the attending read below')),
     s.n ? el('div', { class: 'attmeter' }, el('i', { class: 'a', style: 'width:' + (100 * s.agree / s.n) + '%' }), el('i', { class: 'n', style: 'width:' + (100 * s.near / s.n) + '%' })) : null); });
   draw();
   add(root, el('p', { class: 'lead' }, 'Enter the attending’s final read for this study. Your side fills in from the workbook; the agreement across studies is on the Quality dashboard. Enter only categories, never names or record numbers.'),
-    el('div', { class: 'toolbar' }, el('label', null, 'Attending ', code.node), el('label', { for: 'attopt' }, optBox, ' Include optional items (LV and LA size, LV geometry, RV size, RA pressure, mitral stenosis, aorta)'),
+    el('div', { class: 'toolbar' }, el('label', null, 'Attending ', code.node), 
       el('button', { class: 'btn small', type: 'button', style: 'margin-left:auto', onclick: () => { for (const k in DEFAULTS) if (k.startsWith('Att!') && k !== 'Att!code') INPUTS[k] = null; save(); for (const c of controls) c.sync(); refresh(); } }, 'Clear attending read')),
     pastePanel(), el('section', { class: 'card', style: 'margin-bottom:18px' }, head), body,
-    el('p', { class: 'foot' }, 'Agree = same category. One step apart = adjacent grade on an ordered scale (for example mild vs mild–moderate, or 50–55 vs 55–60%). For wall motion and cardiomyopathy, the same call (normal vs abnormal, none vs any) with a different territory or type is shown separately. Trace regurgitation counts as none.'));
+    el('p', { class: 'foot' }, 'Pulmonary hypertension is graded from the estimated PASP: absent ≤35, mild 36–49, moderate 50–59, severe ≥60 mmHg (without a PASP, a low probability counts as absent). Critical findings: several can be chosen; both readers reporting critical findings but not the same ones counts as one step apart. Agree = same category. One step apart = adjacent grade on an ordered scale (for example mild vs mild–moderate, or 50–55 vs 55–60%). For wall motion and cardiomyopathy, the same call (normal vs abnormal, none vs any) with a different territory or type is shown separately. Trace regurgitation counts as none.'));
 });
 
 /* ---------- prefill the attending read from pasted report text (added in this web version) ----------
    The text is read once, in this browser, and discarded: it is never shown, saved or sent. Lines that carry
    identifiers are dropped before anything is parsed. Only the findings the user applies are kept. */
-const ID_LINE = /\b(name|patient|pt\.?|mrn|medical record|record (no|number|#)|acct|account|fin|csn|encounter|dob|d\.o\.b|date of birth|birth ?date|age|sex|gender|ssn|social security|address|phone|tel|location|room|bed|referring|ordering|physician|provider|attending|sonographer|technologist|read by|signed|electronically|accession|order (no|number|#)|exam date|study date|date of (service|exam|study)|admission|visit|insurance|height|weight)\b/i;
+const ID_LINE = /\b(name|patient|pt\.?|mrn|medical record|record (no|number|#)|account (no|number|#)|acct (no|number|#)|fin (no|number|#)|csn|encounter|dob|d\.o\.b|date of birth|birth ?date|age\s*[:=]?\s*\d|sex\s*[:=]|gender\s*[:=]|ssn|social security|address|phone|tel\s*[:=]|location\s*[:=]|room|bed\s*[:=]|referring|ordering|physician|provider|attending|sonographer|technologist|read by|signed|electronically|accession|order (no|number|#)|exam date|study date|date of (service|exam|study)|admission|visit|insurance|height\s*[:=]?\s*\d|weight\s*[:=]?\s*\d)/i;
 function scrubText(t){
   return String(t || '').replace(/\r/g, '').split('\n')
     .filter(l => !ID_LINE.test(l))
@@ -5405,10 +5457,12 @@ const VALVES = [
 function parseReport(raw){
   const text = scrubText(raw), C = pClauses(text), F = {}, why = {};
   const set = (k, v, src) => { if (v && !(k in F)){ F[k] = v; why[k] = src; } };
-  const all = C.join(' . ');
+  const all = C.join(' . '), crits = new Set(); let critCalled = false;
   /* LVEF: a range, a single value, or < / > */
-  { const m = /(?:LVEF|L\.?V\.?\s*E\.?F|\bEF\b|ejection fraction)[^.%\d<>]{0,40}?([<>≤≥]\s*\d{1,2}|\d{1,2}\s*(?:-|–|to)\s*\d{1,2}|\d{1,2}(?:\.\d)?)\s*%/i.exec(all);
-    if (m) set('Att!lvef', m[1].replace(/\s*to\s*/i, '–').replace(/\s*-\s*/, '–').replace(/\s+/g, ''), 'LVEF ' + m[1] + '%'); }
+  { const re = /(?:LVEF|L\.?V\.?\s*E\.?F|\bEF\b|ejection fraction)([^.%\d<>]{0,40}?)([<>≤≥]\s*\d{1,2}|\d{1,2}\s*(?:-|–|to)\s*\d{1,2}|\d{1,2}(?:\.\d)?)\s*%/gi, ms = [];
+    let m; while ((m = re.exec(all))) if (!/teich|cube|m-?mode/i.test(m[0])) ms.push(m);
+    const best = ms.find(x => /visual|estimat|biplane|\bbp\b|\bmod\b|simpson|3d/i.test(x[1])) || ms[0];
+    if (best) set('Att!lvef', best[2].replace(/\s*to\s*/i, '–').replace(/\s*-\s*/, '–').replace(/\s+/g, ''), 'LVEF ' + best[2] + '%'); }
   for (const c of C){
     const lc = c.toLowerCase();
     /* wall motion */
@@ -5440,12 +5494,12 @@ function parseReport(raw){
       for (const [id, , , none] of VALVES) set('Att!' + id, none, 'no significant valve disease');
     }
     /* pulmonary pressure */
-    if (/pulmonary (artery|arterial) |pulmonary hypertension|\bpasp\b|\brvsp\b|\bph\b/.test(lc)){
-      if (/high (echocardiographic )?probability/.test(lc)) set('Att!ph', 'High', 'high probability of PH');
-      else if (/intermediate (echocardiographic )?probability/.test(lc)) set('Att!ph', 'Intermediate', 'intermediate probability of PH');
-      else if (/low (echocardiographic )?probability|normal (estimated )?(pulmonary|pa|rv)|no (evidence of )?pulmonary hypertension/.test(lc)) set('Att!ph', 'Low', 'low probability / normal pulmonary pressure');
-      else if (/(moderate|severe)(ly)? (elevated|increased|pulmonary hypertension)/.test(lc)) set('Att!ph', 'High', 'moderate–severe pulmonary hypertension');
-      else if (/mild(ly)? (elevated|increased|pulmonary hypertension)/.test(lc)) set('Att!ph', 'Intermediate', 'mild pulmonary hypertension');
+    if (/pulmonary (artery|arterial) (systolic )?pressure|pulmonary pressure|pulmonary hypertension|\bpasp\b|\brvsp\b|\bph\b/.test(lc)){
+      const pm = /(?:pasp|rvsp|pulmonary artery systolic pressure|right ventricular systolic pressure)[^.\d]{0,40}(\d{2,3})\s*mm/.exec(lc);
+      const gw = /severe(ly)? (elevated|increased|pulmonary hypertension)|severe ph\b/.test(lc) ? 'Severe' : /moderate(ly)? (elevated|increased|pulmonary hypertension)|moderate ph\b/.test(lc) ? 'Moderate' : /mild(ly)? (elevated|increased|pulmonary hypertension)|mild ph\b/.test(lc) ? 'Mild' : '';
+      if (/low (echocardiographic )?probability|normal (estimated )?(pulmonary artery (systolic )?pressure|pulmonary pressure|pa (systolic )?pressure|rvsp|pasp|rv systolic pressure|right ventricular systolic pressure)|no (evidence of |echocardiographic evidence of )?pulmonary hypertension|pulmonary (artery )?pressures? (is |are |was )?normal/.test(lc)) set('Att!ph', 'Absent', 'no pulmonary hypertension / normal pressure');
+      else if (gw) set('Att!ph', gw, gw.toLowerCase() + ' pulmonary hypertension');
+      else if (pm) set('Att!ph', phGrade(+pm[1]), 'PASP ' + pm[1] + ' mmHg');
     }
     /* pericardial effusion */
     { const k = lc.search(/pericardial effusion|effusion/); if (k >= 0 && /pericard/.test(lc)){
@@ -5461,10 +5515,14 @@ function parseReport(raw){
       else if (/(elevated|increased) (left atrial|lv filling|left ventricular filling|filling) pressure/.test(lc) && !pNeg(c, lc.search(/elevated|increased/))) set('Att!dia', 'Elevated LAP, no grade', 'elevated filling pressure, no grade');
     }
     /* actionable findings */
-    for (const [re, which] of [[/tamponade/, 'Tamponade'], [/dissection/, 'Aortic dissection'], [/thromb/, 'Thrombus or mass'], [/vegetation/, 'Vegetation'], [/\bmass\b/, 'Thrombus or mass']]){
-      const k = lc.search(re); if (k >= 0){ if (pNeg(c, k)) { if (!('Att!crit' in F)) why._critNo = true; } else { set('Att!crit', 'Yes', which.toLowerCase()); set('Att!crit_which', which, which.toLowerCase()); } }
+    for (const [re, which] of [[/tamponade/, 'Tamponade'], [/dissection|acute aortic syndrome|intramural hematoma/, 'Aortic dissection'], [/thromb[a-z]* in transit|clot in transit/, 'Thrombus in transit'], [/thromb|\bclot\b|\bmass\b/, 'Intracardiac thrombus or mass'], [/vegetation/, 'Vegetation'],
+        [/(acute )?(rv|right ventricular) (strain|dysfunction|overload).{0,40}(embol|\bpe\b)|mcconnell/, 'Acute RV dysfunction with suspected PE'], [/new (severe|significantly reduced) (lv|left ventricular)|newly reduced ejection/, 'New severe LV dysfunction'],
+        [/new(ly)? severe aortic stenosis/, 'New severe aortic stenosis'], [/prosthe[a-z]* (valve )?(dysfunction|obstruction|thrombosis|dehiscence)|valve thrombosis|paravalvular leak/, 'Prosthetic valve dysfunction'],
+        [/new (large|moderate to large) pericardial effusion/, 'New large pericardial effusion'], [/lvot obstruction|outflow (tract )?obstruction|dynamic obstruction/, 'LVOT obstruction at rest'], [/low cardiac output|cardiogenic shock/, 'Low cardiac output with hypotension']]){
+      if (which === 'Intracardiac thrombus or mass' && (/vegetation/.test(lc) && !/thromb/.test(lc) || /in transit/.test(lc))) continue;      /* a mass called a vegetation, or a thrombus in transit, is counted once */
+      const k = lc.search(re); if (k >= 0 && !pNeg(c, k)){ crits.add(which); if (!why['Att!critset']) why['Att!critset'] = which.toLowerCase(); }
     }
-    if (/critical (result|value|finding)|(called|communicated|discussed|notified) (to|with)/.test(lc) && !pNeg(c, lc.search(/critical|called|communicated|discussed|notified/))) set('Att!crit', 'Yes', 'critical result communicated');
+    if (/critical (result|value|finding)|(called|communicated|discussed|notified) (to|with)/.test(lc) && !pNeg(c, lc.search(/critical|called|communicated|discussed|notified/))) critCalled = true;
     for (const [re, v] of [[/dilated cardiomyopathy|\bdcm\b|non-?ischemic cardiomyopathy/, 'Dilated'], [/hypertrophic (obstructive )?cardiomyopathy|\bh(o)?cm\b|asymmetric septal hypertrophy/, 'Hypertrophic'], [/amyloid|infiltrative/, 'Infiltrative (consider amyloid)'],
       [/takotsubo|stress (induced )?cardiomyopathy|apical ballooning/, 'Takotsubo'], [/restrictive cardiomyopathy/, 'Restrictive'], [/arrhythmogenic|\barvc\b/, 'Arrhythmogenic RV'], [/non-?compaction|hypertrabeculation/, 'Other']]){
       const k = lc.search(re); if (k >= 0 && !pNeg(c, k)) set('Att!cm', v, v.toLowerCase());
@@ -5477,53 +5535,266 @@ function parseReport(raw){
     size(/left atri(um|al)|\bla\b/, 'Att!lasize', 'LA size');
     if (/right ventric|\brv\b/.test(lc) && /dilat|enlarg|normal\b[^.]{0,30}\bsize|size (is )?normal/.test(lc)) set('Att!rvsize', /dilat|enlarg/.test(lc) && !pNeg(c, lc.search(/dilat|enlarg/)) ? 'Dilated' : 'Normal', 'RV size: ' + (/dilat|enlarg/.test(lc) ? 'dilated' : 'normal'));
     if (/concentric (lv |left ventricular )?hypertrophy/.test(lc)) set('Att!lvgeo', 'Concentric hypertrophy', 'concentric hypertrophy');
+    else if (/normal (left ventricular |lv )?wall thickness/.test(lc) && !/hypertroph|remodel/.test(lc)) set('Att!lvgeo', 'Normal geometry', 'normal wall thickness');
     else if (/concentric remodel/.test(lc)) set('Att!lvgeo', 'Concentric remodeling', 'concentric remodeling');
     else if (/eccentric (lv |left ventricular )?hypertrophy/.test(lc)) set('Att!lvgeo', 'Eccentric hypertrophy', 'eccentric hypertrophy');
     { const m = /(?:right atrial|\bra\b) pressure[^.\d]{0,30}(\d{1,2})/.exec(lc); if (m){ const n = +m[1]; set('Att!rap', n <= 5 ? '3 mmHg' : n <= 10 ? '8 mmHg' : '15 mmHg', 'RA pressure ' + n); } }
     if (/aort(a|ic root)|ascending/.test(lc)){ const k = lc.search(/dilat|aneurysm|enlarg/); if (k >= 0 && !pNeg(c, k)) set('Att!aorta', 'Dilated', 'dilated aorta'); else if (/normal (in )?size|not dilated|normal (aortic|aorta)/.test(lc)) set('Att!aorta', 'Normal', 'normal aorta'); }
   }
+  if (crits.size) set('Att!critset', CRIT_CATS.filter(c => crits.has(c)).join(', '), [...crits].join(', ').toLowerCase());
+  else if (critCalled) set('Att!critset', 'Other', 'critical result communicated');
   return { F, why };
 }
 /* the panel on the Compare page */
+
+/* one tap: read the clipboard (copied with Live Text in the Camera viewfinder, or anywhere else) */
+const LIVETEXT_TIP = 'On iPhone: open Camera, point it at the report, tap the text icon (bottom right), Select All or drag to select, Copy. No photo is saved. Then come back and tap the button.';
+function clipButton(take, label){
+  const b = el('button', { class: 'btn primary clipbtn', type: 'button' }, label || 'Paste from clipboard');
+  b.addEventListener('click', async e => { e.preventDefault(); e.stopPropagation();
+    if (!navigator.clipboard || !navigator.clipboard.readText){ toast('This browser cannot read the clipboard directly. Tap the box and choose Paste.'); return; }
+    try { const t = await navigator.clipboard.readText(); if (!t || !t.trim()){ toast('The clipboard is empty. Copy the report text first.'); return; } take(t); }
+    catch (err){ toast('Clipboard access was not allowed. Tap the box and choose Paste.'); } });
+  return b;
+}
 function pastePanel(){
   let found = {};       // key -> {v, src}
   let pastes = 0;
   const list = el('div', { class: 'pfl' }), status = el('p', { class: 'p-ref' });
   const zone = el('textarea', { class: 'fld pzone', rows: 2, placeholder: 'Tap here and choose Paste (or press Ctrl/⌘+V). The text is read and discarded, never shown.', 'aria-label': 'Paste the attending report text here', autocomplete: 'off', spellcheck: 'false' });
+  let filledNow = [], undoA = null;
   const take = txt => {
     if (!txt || !txt.trim()) return; pastes++;
     const { F, why } = parseReport(txt);       // the text goes no further than this line
-    for (const k in F) found[k] = { v: F[k], src: why[k], n: pastes };
-    txt = null; draw();
+    txt = null; const ks = Object.keys(F); undoA = Object.fromEntries(ks.map(k => [k, INPUTS[k]]));
+    const fill = [];
+    for (const k of ks){ const cur = INPUTS[k];
+      if (cur == null || cur === ''){ INPUTS[k] = F[k]; fill.push(k); delete found[k]; }
+      else if (cur !== F[k]) found[k] = { v: F[k], src: why[k], n: pastes }; }
+    filledNow = filledNow.concat(fill.map(k => ({ k, v: F[k], src: why[k] })));
+    if (fill.length){ save(); for (const c of controls) c.sync(); refresh();
+      toast(fill.length + ' finding' + (fill.length === 1 ? '' : 's') + ' filled in', 'Undo', () => { for (const k in undoA) INPUTS[k] = undoA[k]; save(); for (const c of controls) c.sync(); refresh(); filledNow = []; draw(); }); }
+    lastN = ks.length; draw();
   };
+  let lastN = 0;
   zone.addEventListener('paste', e => { e.preventDefault(); take((e.clipboardData || window.clipboardData).getData('text')); zone.value = ''; });
   zone.addEventListener('input', () => { const t = zone.value; zone.value = ''; if (t.length > 20) take(t); });      // typed or dictated text, or a paste the browser did not report
-  const clipBtn = el('button', { class: 'btn small', type: 'button', onclick: async () => { try { take(await navigator.clipboard.readText()); } catch (e) { toast('The browser did not allow reading the clipboard. Tap the box and choose Paste.'); } } }, 'Paste from clipboard');
-  const applyBtn = el('button', { class: 'btn small primary', type: 'button' }, 'Apply selected'), clearBtn = el('button', { class: 'btn small', type: 'button', onclick: () => { found = {}; pastes = 0; draw(); } }, 'Discard');
-  const labelOf = k => k === 'Att!lvef' ? 'LVEF (%)' : k === 'Att!crit_which' ? 'Critical finding: which' : (ATT.find(i => attKey(i) === k) || {}).label || k;
+  const clipBtn = clipButton(take, 'Paste attending report');
+  const applyBtn = el('button', { class: 'btn small', type: 'button' }, 'Replace ticked'), clearBtn = el('button', { class: 'btn small', type: 'button', onclick: () => { found = {}; filledNow = []; pastes = 0; draw(); } }, 'Keep mine');
+  const labelOf = k => k === 'Att!lvef' ? 'LVEF (%)' : (ATT.find(i => attKey(i) === k) || {}).label || k;
   const checks = new Map();
   function draw(){
     list.replaceChildren(); checks.clear();
     const keys = Object.keys(found);
-    status.textContent = !pastes ? 'Copy the impression or summary from the attending report (on iPhone, Live Text in Photos or Camera lets you select and copy text from a picture), then paste it here. Paste several parts one after the other if needed.'
-      : keys.length ? keys.length + ' finding' + (keys.length > 1 ? 's' : '') + ' recognized from ' + pastes + ' paste' + (pastes > 1 ? 's' : '') + '. Lines with names, numbers or dates were ignored and the text was discarded. Untick anything wrong, then apply.'
-      : 'Nothing recognized in ' + pastes + ' paste' + (pastes > 1 ? 's' : '') + '. The text was discarded. Try copying the impression section only.';
+    status.textContent = !pastes ? 'Copy the impression or summary of the attending report, then tap the button: recognized findings go straight into the empty items below. ' + LIVETEXT_TIP
+      : !lastN && !filledNow.length ? 'Nothing recognized. The text was discarded. Try copying the impression section only.'
+      : filledNow.length + ' finding' + (filledNow.length === 1 ? '' : 's') + ' filled in from ' + pastes + ' paste' + (pastes > 1 ? 's' : '') + '; the text was discarded. Paste another part if needed.' + (keys.length ? ' ' + keys.length + ' item' + (keys.length > 1 ? 's' : '') + ' already had a different value; tick any to replace.' : '');
+    if (filledNow.length) add(list, el('p', { class: 'pfdone' }, filledNow.map(f => el('span', { class: 'chip', title: 'from “' + f.src + '”' }, labelOf(f.k) + ': ' + f.v))));
     applyBtn.hidden = clearBtn.hidden = !keys.length;
-    const order = ['Att!lvef'].concat(ATT.filter(i => !i.input).map(attKey), ['Att!crit_which']);
+    const order = ['Att!lvef'].concat(ATT.filter(i => !i.input).map(attKey));
     for (const k of order){ if (!found[k]) continue;
       const cur = INPUTS[k], differs = cur != null && cur !== '' && cur !== found[k].v;
-      const cb = el('input', { type: 'checkbox' }); cb.checked = true; checks.set(k, cb);
+      const cb = el('input', { type: 'checkbox' }); cb.checked = false; checks.set(k, cb);
       add(list, el('label', { class: 'pf' }, cb, el('span', { class: 'pfk' }, labelOf(k)), el('b', null, found[k].v),
         el('span', { class: 'p-ref' }, 'from “' + found[k].src + '”' + (differs ? ' · replaces ' + cur : cur === found[k].v ? ' · already entered' : ''))));
     }
   }
   applyBtn.addEventListener('click', () => { let n = 0; for (const [k, cb] of checks) if (cb.checked){ INPUTS[k] = found[k].v; n++; }
-    save(); for (const c of controls) c.sync(); refresh(); found = {}; pastes = 0; draw(); toast(n + ' finding' + (n === 1 ? '' : 's') + ' applied. Check the rest by hand.'); });
+    save(); for (const c of controls) c.sync(); refresh(); found = {}; draw(); toast(n + ' finding' + (n === 1 ? '' : 's') + ' replaced.'); });
   draw();
   return el('section', { class: 'card pastecard' }, el('h2', null, 'Prefill from the attending report'),
-    el('div', { class: 'prow2' }, zone, clipBtn), status, list, el('div', { class: 'toolbar', style: 'margin:8px 0 0' }, applyBtn, clearBtn),
+    el('div', { class: 'clipwrap' }, clipBtn, el('span', { class: 'p-ref' }, 'or paste into the box')), el('div', { class: 'prow2' }, zone), status, list, el('div', { class: 'toolbar', style: 'margin:8px 0 0' }, applyBtn, clearBtn),
     el('p', { class: 'p-ref', style: 'margin-top:8px' }, 'Privacy: the pasted text is read once in this browser to find the findings, then discarded. It is never displayed, saved or sent anywhere. Lines with names, record numbers, dates of birth or other identifiers are dropped before reading. Copy only the impression when you can. Items not recognized stay blank.'));
 }
+
+/* Study overview: the attending comparison of this study */
+function attOverviewCard(){
+  const body = el('div');
+  bind(() => { const s = attStudy(INPUTS); body.replaceChildren();
+    if (!s.n){ add(body, el('p', { class: 'p-ref', style: 'font-size:14px' }, 'No attending read yet for this study. ', el('a', { href: '#compare' }, 'Add the attending read'), ' (paste the final report or pick the findings); it is saved with the study.')); return; }
+    const diff = s.rows.filter(r => r.c === 'differ' || r.c === 'near');
+    add(body, el('div', { class: 'attbig' }, el('b', null, s.agree + ' of ' + s.n), el('span', null, ' items agree' + (INPUTS['Att!code'] ? ' with ' + INPUTS['Att!code'] : ''))),
+      el('div', { class: 'attmeter' }, el('i', { class: 'a', style: 'width:' + (100 * s.agree / s.n) + '%' }), el('i', { class: 'n', style: 'width:' + (100 * s.near / s.n) + '%' })),
+      diff.length ? el('ul', { class: 'attdiff' }, diff.map(r => el('li', null, el('b', null, r.it.label + ': '), 'yours ' + r.m + ' · attending ' + r.a, el('span', { class: 'chip ' + (r.c === 'near' ? 'warn' : 'bad') }, r.c === 'near' ? (r.it.two ? 'type differs' : 'one step') : 'differ')))) : el('p', { class: 'p-ref', style: 'margin-top:8px' }, 'Every compared item agrees.'),
+      el('p', { class: 'p-ref', style: 'margin-top:8px' }, el('a', { href: '#compare' }, 'Open the comparison')));
+  });
+  return el('section', { class: 'card' }, el('h2', null, 'Attending comparison'), body);
+}
+
+/* ---------- prefill Echo measurements from the official report's measurement text (added in this web version) ----------
+   Same privacy rule as the attending prefill: identifier lines are dropped, the text is read once and discarded.
+   Height, weight, age, sex, heart rate and blood pressure are kept because the calculations need them. */
+const MID_LINE = /\b(name|patient|pt\.?|mrn|medical record|record (no|number|#)|account (no|number|#)|acct (no|number|#)|fin (no|number|#)|csn|encounter|dob|d\.o\.b|date of birth|birth ?date|ssn|social security|address|phone|tel|location|room|bed|referring|ordering|physician|provider|attending|sonographer|technologist|read by|signed|electronically|accession|order (no|number|#)|exam date|study date|date of (service|exam|study)|admission|visit|insurance)\b/i;
+function scrubMeas(t){
+  /* a header line with an identifier is dropped whole; only body-size, sex, heart-rate and blood-pressure fields are copied out of it first */
+  const SAFE = /\b(?:ht|height|wt|weight|bsa|heart rate|hr|bp|blood pressure)\b\s*(?:\([^)]{0,8}\))?\s*[:=]?\s*\d[\d.\/]*(?:\s*(?:cm|inch(?:es)?|in|kg|lbs?|bpm|mmhg)\b)?|\b(?:sex|gender)\s*[:=]?\s*(?:male|female|m|f)\b/gi;
+  return String(t || '').replace(/\r/g, '').split('\n').map(l => MID_LINE.test(l) ? (l.match(SAFE) || []).join('   ') : l)
+    .map(l => l.replace(/\b\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}\b/g, ' ').replace(/\b\d{6,}\b/g, ' ').replace(/[\w.+-]+@[\w-]+\.[\w.]+/g, ' ')).join('\n');
+}
+/* unit kinds: convert whatever the report used into the workbook's unit, with a plausibility guess when no unit is given */
+const UCONV = {
+  mm:   (v, u) => u === 'cm' ? v * 10 : u === 'mm' ? v : v < 15 ? v * 10 : v,
+  cm:   (v, u) => u === 'mm' ? v / 10 : u === 'cm' ? v : v > 6 ? v / 10 : v,
+  vti:  (v, u) => u === 'mm' ? v / 10 : v,
+  cms:  (v, u) => u === 'm/s' ? v * 100 : u === 'cm/s' ? v : v < 3 ? v * 100 : v,
+  mps:  (v, u) => u === 'cm/s' ? v / 100 : u === 'm/s' ? v : v > 10 ? v / 100 : v,
+  msec: (v, u) => u === 's' ? v * 1000 : v < 2 ? v * 1000 : v,
+  ml:   (v, u) => v, mmhg: (v, u) => v, pct: (v, u) => v, cm2: (v, u) => u === 'mm2' ? v / 100 : v, bpm: (v, u) => v, yr: (v, u) => v,
+  kg:   (v, u) => /lb/.test(u) ? v * 0.4536 : v,
+  hcm:  (v, u) => u === 'in' ? v * 2.54 : u === 'm' || v < 3 ? v * 100 : !u && v >= 48 && v <= 96 ? v * 2.54 : v,
+  gls:  (v, u) => -Math.abs(v)
+};
+/* [workbook key, label patterns in order of preference, unit kind, plausible range] */
+const MEAS = [
+  ['Echo!B14', [/\bheight\b|\bht\b/], 'hcm', [100, 230]], ['Echo!B15', [/\bweight\b|\bwt\b/], 'kg', [25, 300]], ['Echo!B13', [/\bage\b/], 'yr', [16, 110]],
+  ['Echo!B16', [/\bheart rate\b|\bhr\b|\bpulse\b/], 'bpm', [25, 220]],
+  ['Echo!B23', [/\bivs\s*d\b|\bivsd\b|\bivs\s*\(?diast|septum[^\n]{0,20}diast|\bivs\b(?!\s*s\b)/], 'mm', [3, 50]],
+  ['Echo!B24', [/\blvid\s*d\b|\blvidd\b|\blvedd\b|\blvid\s*\(?diast|lv\s*(?:end[- ]?)?diastolic\s*(?:dimension|diameter)|\blv\s*diam(?:eter)?\s*d\b/], 'mm', [15, 95]],
+  ['Echo!B25', [/\blv\s*pw\s*d\b|\blvpwd\b|\bpw\s*d\b|\bpwd\b|posterior wall[^\n]{0,20}diast|\blvpw\b(?!\s*s\b)/], 'mm', [3, 40]],
+  ['Echo!B26', [/\blvid\s*s\b|\blvids\b|\blvesd\b|\blvid\s*\(?syst|lv\s*(?:end[- ]?)?systolic\s*(?:dimension|diameter)/], 'mm', [8, 80]],
+  ['Echo!B37', [/\b(?:lv)?edv\s*\(?\s*mod\s*bp|\b(?:lv\s*)?(?:lv)?edv\b[^\n]{0,12}\b(?:bp|biplane)\b|(?:bp|biplane)[^\n]{0,12}\b(?:lv)?edv\b/, /\b(?:lv)?edv\s*\(?\s*mod\b/, /\b(?:lv\s*)?(?:lv)?edv\b(?!\s*i\b|\s*index)|end[- ]diastolic volume(?!\s*index)/], 'ml', [20, 600]],
+  ['Echo!B38', [/\b(?:lv)?esv\s*\(?\s*mod\s*bp|\b(?:lv\s*)?(?:lv)?esv\b[^\n]{0,12}\b(?:bp|biplane)\b|(?:bp|biplane)[^\n]{0,12}\b(?:lv)?esv\b/, /\b(?:lv)?esv\s*\(?\s*mod\b/, /\b(?:lv\s*)?(?:lv)?esv\b(?!\s*i\b|\s*index)|end[- ]systolic volume(?!\s*index)/], 'ml', [5, 500]],
+  ['Echo!B39', [/\b(?:lv)?ef\s*\(?\s*mod\s*bp|\b(?:lv)?ef\b[^\n]{0,14}\b(?:bp|biplane)\b/, /\b(?:lv)?ef\s*\(?\s*mod\b/, /\blvef\b|\bef\b|ejection fraction/], 'pct', [5, 90]],
+  ['Echo!B45', [/\bgls\b|global longitudinal strain/], 'gls', [-35, 35]],
+  ['Echo!B51', [/\blvot\s*(?:diam(?:eter)?|d\b|dimension|size)/], 'cm', [1.2, 3.5]],
+  ['Echo!B52', [/\blvot\s*vti\b/], 'vti', [5, 50]],
+  ['Echo!B53', [/\blvot\s*(?:v\s*max|vmax|peak\s*vel(?:ocity)?|vel(?:ocity)?)/], 'mps', [0.3, 7]],
+  ['Echo!B64', [/\b(?:av|ao|aortic(?: valve)?)\s*(?:v\s*max|vmax|peak\s*vel(?:ocity)?|max\s*vel(?:ocity)?)\b/], 'mps', [0.5, 7]],
+  ['Echo!B65', [/\b(?:av|aortic(?: valve)?)\s*vti\b/], 'vti', [5, 200]],
+  ['Echo!B66', [/\b(?:av|ao|aortic(?: valve)?)\s*(?:mean\s*(?:pg|grad(?:ient)?|pressure gradient)|mpg|pg\s*mean)|mean transaortic (?:pressure )?gradient|mean aortic (?:valve )?gradient/], 'mmhg', [1, 150]],
+  ['Echo!B99', [/\b(?:ar|ai)\s*(?:vc|vena\s*contracta)/], 'cm', [0.05, 2]],
+  ['Echo!B100', [/\b(?:ar|ai)\s*(?:pht|p\s*1\/2\s*t|pressure half)/], 'msec', [50, 1500]],
+  ['Echo!B113', [/\bmv\s*(?:pht|p\s*1\/2\s*t|pressure half)|mitral[^\n]{0,10}pressure half/], 'msec', [30, 500]],
+  ['Echo!B114', [/\bmv\s*(?:mean\s*(?:pg|grad(?:ient)?)|mpg|pg\s*mean)|mitral[^\n]{0,12}mean (?:pressure )?gradient|mean transmitral (?:pressure )?gradient/], 'mmhg', [0.5, 40]],
+  ['Echo!B129', [/\bmr\s*(?:vc|vena\s*contracta)/], 'cm', [0.05, 2]],
+  ['Echo!B130', [/\b(?:mr\s*)?pisa\s*(?:radius|r)\b/], 'cm', [0.1, 2]],
+  ['Echo!B131', [/\balias(?:ing)?\s*vel(?:ocity)?/], 'cms', [10, 90]],
+  ['Echo!B132', [/\bmr\s*(?:v\s*max|vmax|peak\s*vel(?:ocity)?)/], 'mps', [2, 8]],
+  ['Echo!B133', [/\bmr\s*vti\b/], 'vti', [20, 300]],
+  ['Echo!B147', [/\btr\s*(?:vc|vena\s*contracta)/], 'cm', [0.05, 3]],
+  ['Echo!B186', [/\btr\s*(?:v\s*max|vmax|peak\s*vel(?:ocity)?|max\s*vel(?:ocity)?|vel(?:ocity)?)\b|tricuspid regurg\w*\s*(?:peak\s*|max\s*)?vel(?:ocity)?|\btrv\b/], 'mps', [0.8, 6.5]],
+  ['Echo!B167', [/\b(?:pv|pulm(?:onic|onary)\s*valve)\s*(?:v\s*max|vmax|peak\s*vel(?:ocity)?|max\s*vel(?:ocity)?)/], 'mps', [0.3, 6]],
+  ['Echo!B180', [/\bmv\s*e\s*(?:peak\s*)?(?:vel(?:ocity)?|wave|peak|max)?\b(?!['′’]|\s*\/)|\bmitral\s*e\b(?!['′’])|\be\s*(?:wave|vel(?:ocity)?|peak)\b(?!['′’])|\bpeak\s*e\b(?!['′’])/], 'cms', [15, 250]],
+  ['Echo!B181', [/\bmv\s*a\s*(?:peak\s*)?(?:vel(?:ocity)?|wave|peak|max)?\b(?!\s*dur|['′’])|\bmitral\s*a\b(?!\s*dur)|\ba\s*(?:wave|vel(?:ocity)?)\b(?!\s*dur)|\bpeak\s*a\b/], 'cms', [10, 200]],
+  ['Echo!B182', [/\b(?:mv\s*)?(?:dec(?:el(?:eration)?)?\.?\s*t(?:ime)?|\bdt\b)/], 'msec', [60, 500]],
+  ['Echo!B183', [/(?<![\/\w])e\s*['′’]\s*(?:sept(?:al)?|med(?:ial)?)\b|(?:sept(?:al)?|medial)\s*e\s*['′’](?!\s*\/)|(?<![\/\w])e\s*prime\s*(?:sept|med)/], 'cms', [2, 25]],
+  ['Echo!B184', [/(?<![\/\w])e\s*['′’]\s*lat(?:eral)?\b|lat(?:eral)?\s*e\s*['′’](?!\s*\/)|(?<![\/\w])e\s*prime\s*lat/], 'cms', [2, 30]],
+  ['Echo!B185', [/\blaesv\s*\(?\s*mod\s*bp|\bla\s*vol(?:ume)?\b[^\n]{0,12}\b(?:bp|biplane)\b|(?:bp|biplane)[^\n]{0,12}\bla\s*vol/, /\blaesv\s*\(\s*a-?l\s*\)/, /\blaesv\b|\bla\s*vol(?:ume)?\b(?![^\n]{0,8}(?:i\b|index|\/bsa|\/m))|left atri\w*\s*volume(?![^\n]{0,8}index)/], 'ml', [10, 400]],
+  ['Echo!B204', [/\bla\s*(?:ap\s*)?(?:diam(?:eter)?|dimension|size)\b|\bla\s*d\b|left atri\w*\s*(?:ap\s*)?(?:diam(?:eter)?|dimension)/], 'mm', [15, 90]],
+  ['Echo!B205', [/\braesv\s*\(?\s*mod/, /\braesv\b|\bra\s*vol(?:ume)?\b(?![^\n]{0,8}(?:i\b|index))/], 'ml', [10, 400]],
+  ['Echo!B207', [/\braas\b|\bra\s*area\b/], 'cm2', [5, 60]],
+  ['Echo!B210', [/\brv\s*(?:basal|base)\s*(?:diam(?:eter)?|dimension)?|\brvd\s*1\b|\brvd1\b/], 'mm', [15, 80]],
+  ['Echo!B211', [/\brv\s*mid\s*(?:diam(?:eter)?|dimension)?|\brvd\s*2\b|\brvd2\b/], 'mm', [10, 70]],
+  ['Echo!B215', [/\btapse\b/], 'mm', [3, 40]],
+  ['Echo!B216', [/\brv\s*s\s*['′’]|\btv\s*s\s*['′’]|\bs\s*['′’]\s*(?:rv|tricuspid|lat(?:eral)? tricuspid)|tricuspid annular s|\brv\s*tdi\s*s\b/], 'cms', [3, 30]],
+  ['Echo!B223', [/\bivc\s*(?:diam(?:eter)?|max(?:imal)?|size|insp\w*\s*max)?\b(?!\s*(?:collapse|min))/], 'mm', [3, 40]],
+  ['Echo!B228', [/\b(?:rvot\s*)?(?:acc(?:el(?:eration)?)?\.?\s*t(?:ime)?|\bact\b|\bpat\b)/], 'msec', [30, 200]],
+  ['Echo!B234', [/\b(?:main\s*)?(?:pa|pulmonary artery)\s*(?:diam(?:eter)?|dimension)\b|\bmpa\b/], 'mm', [10, 60]],
+  ['Echo!B241', [/\b(?:ao|aortic)\s*annulus\b|\bav\s*annulus\b/], 'mm', [10, 40]],
+  ['Echo!B242', [/\b(?:ao\s*)?sinus(?:es)?(?:\s*of\s*valsalva)?\b|\bsov\b|\bao(?:rtic)?\s*root\b|(?<!asc\.?\s*)\bao\s*diam(?:eter)?\b/], 'mm', [15, 80]],
+  ['Echo!B243', [/\bstj\b|sino[- ]?tubular/], 'mm', [12, 70]],
+  ['Echo!B244', [/\basc(?:ending)?\.?\s*ao(?:rta)?\b|\bao\s*asc\b|ascending aorta|\baao\b/], 'mm', [15, 90]],
+  ['Echo!B245', [/\b(?:ao(?:rtic)?\s*)?arch\b/], 'mm', [12, 70]],
+  ['Echo!B246', [/\bdesc(?:ending)?\.?\s*(?:thoracic\s*)?ao(?:rta)?\b/], 'mm', [10, 70]],
+  ['Echo!B258', [/pericardial effusion\s*(?:size|max|depth)?/], 'mm', [0, 60]],
+  ['Echo!B262', [/\blvot\s*(?:peak\s*)?(?:gradient|pg)\b[^\n]{0,10}rest|\blvot\s*cw\s*(?:v\s*max|vel)/], 'mps', [0.5, 7]],
+  ['Diastology 2025!B34', [/\b(?:la\s*)?reservoir\s*strain|\blars\b|\bla\s*(?:s\s*)?strain\b|\bla\s*gls\b/], 'pct', [2, 70]],
+  ['Diastology 2025!B35', [/\bpv\s*s\b(?!\s*\/)|pulm\w*\s*vein\w*\s*s\b(?!\s*\/)|\bpvs\b/], 'cms', [10, 150]],
+  ['Diastology 2025!B36', [/\bpv\s*d\b|pulm\w*\s*vein\w*\s*d\b|\bpvd\b/], 'cms', [10, 150]],
+  ['Diastology 2025!B38', [/\bpv\s*a(?:r)?\s*(?:vel(?:ocity)?)?\b(?!\s*dur)|pulm\w*\s*vein\w*\s*a(?:r)?\b(?!\s*dur)/], 'cms', [5, 80]],
+  ['Diastology 2025!B39', [/\b(?:pv\s*)?ar\s*dur(?:ation)?/], 'msec', [50, 300]],
+  ['Diastology 2025!B40', [/\b(?:mv\s*|mitral\s*)?a\s*dur(?:ation)?/], 'msec', [50, 300]],
+  ['Diastology 2025!B42', [/\bivrt\b/], 'msec', [20, 200]]
+];
+const UNIT_RE = /^\s*(cm\/s(?:ec)?|cm\/sec|m\/s(?:ec)?|mm\s*hg|mmhg|ml\/m2|ml\/m²|cm\/m2|cm\/m²|g\/m2|cm2\/m2|ml|cm2|cm²|mm2|cm|mm|msec|ms|sec|s\b|%|bpm|kg|lbs?|inch(?:es)?|in\b|m\b|years|yrs?|y\b)/i;
+const unitNorm = u => { u = String(u || '').toLowerCase().replace(/\s+/g, ''); if (/\/m2|\/m²/.test(u)) return 'perm2'; if (/^inch/.test(u)) return 'in'; return /^cm\/s/.test(u) ? 'cm/s' : /^m\/s/.test(u) ? 'm/s' : /mmhg/.test(u) ? 'mmhg' : /^ml\/m/.test(u) ? 'ml/m2' : u === 'ml' ? 'ml' : /^(cm2|cm²)$/.test(u) ? 'cm2' : u === 'mm2' ? 'mm2' : u === 'cm' ? 'cm' : u === 'mm' ? 'mm' : /^(ms|msec)$/.test(u) ? 'ms' : /^(s|sec)$/.test(u) ? 's' : u === '%' ? '%' : u === 'in' ? 'in' : u === 'm' ? 'm' : /^lb/.test(u) ? 'lb' : u; };
+function parseMeasurements(raw){
+  const text = scrubMeas(raw), low = text.toLowerCase(), used = [], out = {}, src = {};
+  const free = (a, b) => !used.some(([x, y]) => a < y && b > x);
+  /* blood pressure and sex are written differently */
+  { const m = /\b(?:bp|blood pressure)\b[^\d\n]{0,12}(\d{2,3})\s*\/\s*(\d{2,3})/.exec(low); if (m){ out['Echo!B17'] = +m[1]; out['Echo!B18'] = +m[2]; src['Echo!B17'] = 'BP ' + m[1] + '/' + m[2]; } }
+  { const m = /\b(?:sex|gender)\b\s*[:=]?\s*(male|female|m|f)\b/.exec(low); if (m) out['Echo!B12'] = m[1][0] === 'f' ? 'F' : 'M'; }
+  { const m = /\bivc\b[^\n]{0,60}?(?:collaps\w*)[^\n]{0,20}?([<>])\s*50\s*%|([<>])\s*50\s*%\s*(?:insp\w*\s*)?collaps/.exec(low); if (m) out['Echo!B224'] = (m[1] || m[2]) === '>' ? 'Y' : 'N';
+    else if (/\bivc\b[^\n]{0,60}(?:collapses? normally|normal (?:inspiratory )?collapse|collapses? (?:more than|greater than) 50)/.test(low)) out['Echo!B224'] = 'Y';
+    else if (/\bivc\b[^\n]{0,60}(?:does not collapse|poor (?:inspiratory )?collapse|minimal collapse|plethoric|collapses? less than 50)/.test(low)) out['Echo!B224'] = 'N'; }
+  for (const [key, pats, kind, [lo, hi]] of MEAS){
+    let best = null;
+    for (const re of pats){
+      const g0 = new RegExp(re.source, 'gi'); let m;
+      while ((m = g0.exec(low))){
+        const a = m.index, b = a + m[0].length; if (!free(a, b)) continue;
+        /* the number follows the label within a short gap; view or method words and tokens like A4C may sit in between */
+        const tail = low.slice(b, b + 70).replace(/\b(a4c|a2c|ap4|ap2|4ch|2ch|2d|m-?mode|bp|mod|biplane|simpson'?s?|cw|pw|tdi|avg|average|mean|max|peak|vel(?:ocity)?|diam(?:eter)?|plax|psax)\b/g, m2 => ' '.repeat(m2.length));
+        const nm = /^[^0-9\n\-]{0,28}?(-?\d+(?:\.\d+)?)(?:\s*(?:-|–|to)\s*(\d+(?:\.\d+)?))?/.exec(tail); if (!nm) continue;
+        let v = +nm[1]; if (nm[2] != null) v = (v + +nm[2]) / 2;
+        const gapTxt = tail.slice(0, nm.index + nm[0].length - nm[1].length - (nm[2] != null ? 0 : 0));
+        if (/[<>≤≥]|\/=/.test(low.slice(b, b + (nm.index + nm[0].indexOf(nm[1])))) ) continue;      /* a reference threshold, not the patient's value */
+        const um = UNIT_RE.exec(tail.slice(nm.index + nm[0].length));
+        const lab = low.slice(a, b + nm.index + nm[0].indexOf(nm[1]));
+        let u = um ? unitNorm(um[1]) : /\(\s*inch|\(\s*in\b/.test(lab) ? 'in' : /\(\s*lbs?\b/.test(lab) ? 'lb' : /\(\s*cm\b/.test(lab) ? 'cm' : /\(\s*kg\b/.test(lab) ? 'kg' : '';
+        if (u === 'perm2' || u === 'ml/m2') continue;          /* an indexed value is not the raw measurement */
+        if (/teich|cube|\bindex\b|\bind\b|%\s*fs/.test(low.slice(a, Math.min(low.length, b + 14)))) continue;      /* Teichholz or cube volumes and EF, indexed values */
+        if (kind === 'ml' && u && u !== 'ml') continue;
+        let x = UCONV[kind](v, u); if (kind === 'gls') x = -Math.abs(v);
+        if (!(x >= Math.min(lo, hi) && x <= Math.max(lo, hi))) continue;
+        best = { x: Math.round(x * 100) / 100, a, b: b + nm.index + nm[0].length, s: (m[0] + ' ' + nm[0].trim() + (um ? ' ' + um[1] : '')).replace(/\s+/g, ' ').trim() };
+        break;
+      }
+      if (best) break;
+    }
+    if (best){ out[key] = best.x; src[key] = best.s; used.push([best.a, best.b]); }
+  }
+  /* indication and image quality from the report header */
+  { const m = /\bindications?\s*:?\s*([^\n]{2,160})/.exec(low); if (m){ const t = m[1];
+      const map = [[/syncope|presyncope/, 'Syncope or presyncope'], [/chest pain|angina|ischemi/, 'Chest pain or suspected ischemia'], [/stroke|\btia\b|\bcva\b|embol(?!.*pulmonary)/, 'Stroke, transient ischemic attack or embolic event'],
+        [/endocarditis|bacteremia|vegetation/, 'Suspected endocarditis or bacteremia'], [/atrial fibrillation|\bafib\b|\ba-?fib\b|flutter/, 'Atrial fibrillation or flutter'], [/palpitation|arrhythmi|tachycardia/, 'Palpitations or arrhythmia'],
+        [/pulmonary embol|\bpe\b/, 'Suspected pulmonary embolism'], [/pericardial|effusion|tamponade/, 'Pericardial effusion or pericardial disease'], [/pulmonary hypertension/, 'Pulmonary hypertension evaluation'],
+        [/dyspnea|shortness of breath|\bsob\b|heart failure|\bchf\b|edema/, 'Dyspnea or suspected heart failure'], [/cardiomyopathy|reduced ef|low ef/, 'Heart failure or cardiomyopathy'], [/murmur/, 'Murmur or suspected valve disease'],
+        [/prosthe|valve replacement|tavr|savr/, 'Prosthetic valve evaluation'], [/stenosis|regurgitation|valv/, 'Valve disease'], [/chemo|oncolog|anthracycline|trastuzumab|cancer/, 'Cardio-oncology (before or during cancer therapy)'],
+        [/pre-?op|surgical clearance|preoperative/, 'Preoperative assessment'], [/\b(?:ekg|ecg)\b/, 'Abnormal electrocardiogram'], [/congenital/, 'Congenital heart disease'], [/aort(?:ic|a) (?:dilat|aneurysm|root)/, 'Aortic disease or aortic dilation'],
+        [/hypotension|shock/, 'Hypotension, shock or hemodynamic instability'], [/hypertension|\bhtn\b|lvh/, 'Hypertension or left ventricular hypertrophy'], [/myocardial infarction|\bstemi\b|\bnstemi\b|\bmi\b/, 'Complication after myocardial infarction']];
+      const hit = map.find(([re]) => re.test(t)); if (hit) out['Report!C11'] = hit[1]; } }
+  { const m = /\b(?:image )?quality\s*:?\s*([^\n]{2,120})/.exec(low); if (m){ const t = m[1];
+      const q = /non-?diagnostic|uninterpretable/.test(t) ? 'Non-diagnostic' : /\bpoor|technically difficult|very limited/.test(t) ? 'Poor' : /suboptimal|limited|fair/.test(t) ? 'Fair' : /excellent/.test(t) ? 'Excellent' : /good|adequate/.test(t) ? 'Good' : '';
+      if (q) out['Report!B22'] = q; } }
+  /* biplane volumes make the visual LVEF unnecessary */
+  if (out['Echo!B37'] != null && out['Echo!B38'] != null && out['Echo!B39'] != null && !/biplane|bp|mod|simpson/.test(String(src['Echo!B39']))) delete out['Echo!B39'];
+  return { out, src };
+}
+/* the panel on the Echo measurements page */
+const FROMREP = new Set();
+function measPanel(){
+  const status = el('p', { class: 'p-ref' }), kept = el('div');
+  const zone = el('textarea', { class: 'fld pzone', rows: 2, placeholder: 'Tap here and choose Paste (or press Ctrl/⌘+V) with the measurements from the official report. The text is read and discarded, never shown.', 'aria-label': 'Paste the report measurements here', autocomplete: 'off', spellcheck: 'false' });
+  let undoSnap = null;
+  const take = txt => {
+    if (!txt || !txt.trim()) return;
+    const { out } = parseMeasurements(txt); txt = null;
+    const keys = Object.keys(out); if (!keys.length){ status.textContent = 'No measurements recognized. The text was discarded. Paste the measurements table or list from the report.'; return; }
+    undoSnap = Object.fromEntries(keys.map(k => [k, INPUTS[k]]));
+    const filled = [], skipped = [];
+    for (const k of keys){ const cur = INPUTS[k]; if (cur == null || cur === '' || (NEW_CASE_DEFAULTS[k] != null && cur === NEW_CASE_DEFAULTS[k])){ INPUTS[k] = out[k]; filled.push(k); FROMREP.add(k); } else if (String(cur) !== String(out[k])) skipped.push([k, out[k]]); }
+    save(); for (const c of controls) c.sync(); refresh(); markFromRep();
+    status.textContent = filled.length + ' measurement' + (filled.length === 1 ? '' : 's') + ' filled in from the report (marked in the boxes below). The text was discarded.' + (skipped.length ? ' ' + skipped.length + ' field' + (skipped.length === 1 ? '' : 's') + ' already had your own value and ' + (skipped.length === 1 ? 'was' : 'were') + ' kept.' : '');
+    kept.replaceChildren();
+    if (skipped.length) add(kept, el('button', { class: 'btn small', type: 'button', onclick: () => { for (const [k, v] of skipped){ undoSnap[k] = INPUTS[k]; INPUTS[k] = v; FROMREP.add(k); } save(); for (const c of controls) c.sync(); refresh(); markFromRep(); kept.replaceChildren(); status.textContent += ' Replaced with the report values.'; } }, 'Use the report values for those too'));
+    toast(filled.length + ' measurements filled in', 'Undo', () => { for (const k in undoSnap){ INPUTS[k] = undoSnap[k]; FROMREP.delete(k); } save(); for (const c of controls) c.sync(); refresh(); markFromRep(); status.textContent = 'Undone.'; kept.replaceChildren(); });
+  };
+  zone.addEventListener('paste', e => { e.preventDefault(); take((e.clipboardData || window.clipboardData).getData('text')); zone.value = ''; });
+  zone.addEventListener('input', () => { const t = zone.value; zone.value = ''; if (t.length > 20) take(t); });
+  const clipBtn = clipButton(t => { box.open = true; take(t); }, 'Paste report measurements');
+  bind(markFromRep);
+  status.textContent = LIVETEXT_TIP + ' Or paste the measurements section of the official report (from the EHR or a PDF) into the box. Recognized values go straight into the empty boxes, converted to the units used here; your own values are never overwritten unless you choose to. Paste several parts one after the other if needed.';
+  const box = el('details', { class: 'card pastecard measpaste' }, el('summary', null, el('h2', null, 'Prefill from the official report'), clipBtn),
+    el('div', { class: 'prow2', style: 'margin-top:10px' }, zone), status, kept,
+    el('p', { class: 'p-ref', style: 'margin-top:8px' }, 'Privacy: the pasted text is read once in this browser and discarded; it is never displayed, saved or sent. Lines with names, record numbers, dates of birth or other identifiers are dropped before reading. Indexed values (mL/m²) and calculated ratios are ignored; the workbook calculates them.'));
+  return box;
+}
+/* mark boxes that came from the report until they are edited */
+function markFromRep(){
+  for (const n of $$('.prow[data-input]')){ const k = n.dataset.input; n.classList.toggle('fromrep', FROMREP.has(k) && INPUTS[k] != null && INPUTS[k] !== ''); }
+}
+document.addEventListener('input', e => { const r = e.target.closest && e.target.closest('.prow[data-input]'); if (r && FROMREP.has(r.dataset.input)){ FROMREP.delete(r.dataset.input); r.classList.remove('fromrep'); } }, true);
 
 /* the header button: Save study's neighbour */
 function attHeaderBtn(){
@@ -5552,7 +5823,7 @@ function attDashboard(list){
     let efLine = 'LVEF as numbers: needs both your value and the attending’s in at least 3 studies.';
     if (ef.length >= 3){ const d = ef.map(([a, b]) => a - b), md = d.reduce((s, v) => s + v, 0) / d.length, sd = Math.sqrt(d.reduce((s, v) => s + (v - md) ** 2, 0) / (d.length - 1)), icc = iccA1(ef.map(x => x[0]), ef.map(x => x[1]));
       efLine = 'LVEF as numbers (' + ef.length + ' studies): mean difference ' + (md >= 0 ? '+' : '') + md.toFixed(1) + ' points (yours minus attending), limits of agreement ' + (md - 1.96 * sd).toFixed(1) + ' to ' + (md + 1.96 * sd).toFixed(1) + (icc != null ? ' · ICC ' + icc.toFixed(2) : '') + '.'; }
-    const tot = R.map(r => { let n = 0, a = 0; for (const it of attItems()){ const [m, x] = r.items[it.id]; const c = attCmp(it, m, x); if (c){ n++; if (c === 'agree') a++; } } return n ? a / n : null; }).filter(v => v != null);
+    const tot = R.map(r => { let n = 0, a = 0; for (const it of attStatItems()){ const [m, x] = r.items[it.id]; const c = attCmp(it, m, x); if (c){ n++; if (c === 'agree') a++; } } return n ? a / n : null; }).filter(v => v != null);
     add(out, el('p', { class: 'qbig' }, tot.length ? Math.round(100 * tot.reduce((s, v) => s + v, 0) / tot.length) + '%' : '—', el('span', null, ' mean concordance per study · ' + R.length + ' studies with an attending read')),
       el('div', { class: 'tbl', style: 'margin:0' }, el('table', { class: 'atttbl' }, el('thead', null, el('tr', null, ['Item', 'Pairs', 'Exact', 'Within one step', 'κ (95% CI)', ''].map(t => el('th', null, t)))), tb)),
       el('p', { class: 'p-ref', style: 'margin-top:8px' }, efLine),
@@ -5584,7 +5855,7 @@ function qdRow(rec){
     const s = k => { const v = g(k); return isErr(v) || v == null ? '' : String(v); }, num = k => typeof g(k) === 'number';
     const o = { when: Date.parse(rec.savedAt), type: s('Report!B9'), sec: typeof ins[TM.sec] === 'number' && ins[TM.sec] > 0 ? ins[TM.sec] : null,
       g16: s('Diastology 2025!G107'), g25: s('Diastology 2025!G108'), agree: s('Diastology 2025!F108'), pop: s('Diastology 2025!B7'),
-      iq: s('Report!B22'), uea: s('Report!B19') === 'Yes', ind: s('Report!C11'), settle: [], partly: [], pairs: false };
+      iq: s('Report!B22'), uea: s('Report!B19') === 'Yes', ind: indNorm(s('Report!C11')), settle: [], partly: [], pairs: false };
     if (o.g25 === 'Indeterminate'){ try { const d = computeDiaIndet(); if (d){ const m = d.rows.filter(x => x.missing); o.settle = m.filter(x => x.settles).map(x => x.p.short); o.partly = m.filter(x => x.partly && !x.settles).map(x => x.p.short); o.pairs = !o.settle.length && d.pairs.length > 0; } } catch (e) {} }
     try { o.cmp = cmpFlags().F.map(f => f.t); } catch (e) { o.cmp = []; }
     o.crit = s('Report!D26').trim() !== ''; o.critDoc = o.crit && s('Report!B47').trim() !== '';
