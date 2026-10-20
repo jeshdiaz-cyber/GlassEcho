@@ -85,6 +85,7 @@ a{color:var(--accent)}
 .btn.primary:hover{filter:brightness(1.08); color:var(--accent-ink)}
 .btn.small{padding:4px 9px; font-size:13.5px}
 .btn.quiet{border-color:transparent; background:transparent; color:var(--muted)}
+.stsel{width:17px; height:17px; accent-color:var(--accent); flex:none}
 
 /* ---------- main ---------- */
 main{min-width:0; display:flex; flex-direction:column}
@@ -695,6 +696,7 @@ td.dd{background:color-mix(in srgb,var(--warn-bg) 55%,transparent)}
   .studytbl td.stact{grid-column:2 / 3; grid-row:1; justify-self:end}
   .studytbl td:nth-last-child(2){grid-column:1 / -1}
   .studytbl .stact .btn{min-height:38px; padding:0 16px}
+  .studytbl .stsel{width:22px; height:22px}
 }
 </style>
 </head>
@@ -5105,6 +5107,13 @@ function diaOf(rec){
 }
 function recordInputs(rec){ const o = emptyStudy(); let ins = {}; try { ins = JSON.parse(rec.inputs || '{}'); } catch (e) {} for (const k in ins) if (k in DEFAULTS) o[k] = ins[k]; return o; }
 function openRecord(rec){ const had = filled(INPUTS) && (current.id !== rec.id || dirty); loadStudy(recordInputs(rec), { id: rec.id, savedAt: rec.savedAt }); if (had) toast('Opened ' + (rec.pid || 'study'), 'Undo', () => { if (bringBack()) toast('Previous study brought back'); }); else toast('Opened ' + (rec.pid || 'study')); location.hash = 'overview'; }
+async function deleteMany(ids){
+  ids = new Set(ids); if (!ids.size) return 0; let n = 0;
+  if (Store.mode === 'cloud'){ for (const id of ids){ try { await Store.col.doc(id).delete(); n++; } catch (e) {} } }
+  else { const all = localAll(); n = all.filter(r => ids.has(r.id)).length; localPut(all.filter(r => !ids.has(r.id))); Store.list = localAll().sort(byNewest); }
+  if (current.id && ids.has(current.id)){ current = { id: null, savedAt: null }; dirty = true; saveMeta(); refresh(); }
+  Store.onchange(); toast(n + (n === 1 ? ' study deleted' : ' studies deleted')); return n;
+}
 async function deleteRecord(rec){
   if (Store.mode === 'cloud'){ try { await Store.col.doc(rec.id).delete(); } catch (e) { toast('The study could not be deleted. Try again.'); return; } }
   else { localPut(localAll().filter(r => r.id !== rec.id)); Store.list = localAll().sort(byNewest); }
@@ -5290,7 +5299,7 @@ async function importStudiesFile(f){
   const head = rows[0], seenH = new Map(), keys = head.map(h => { const t = String(h || '').trim().toLowerCase(), n = seenH.get(t) || 0; seenH.set(t, n + 1); return importKeyOf(h, n); }), idCol = head.findIndex(h => /^record id$/i.test(String(h).trim())), atCol = head.findIndex(h => /^saved at$/i.test(String(h).trim()));
   const unknown = head.filter((h, i) => String(h).trim() && !keys[i] && i !== idCol && i !== atCol && !/^result: /i.test(String(h).trim()));
   if (!keys.some(Boolean)) return { err: 'None of the column headings matched a GlassEcho measurement.' };
-  await ensureStore(); let n = 0, dup = 0; const have = new Set(Store.list.map(x => x.id));
+  await ensureStore(); let n = 0, dup = 0; const have = new Set(Store.list.map(x => x.id)), ids = [];
   for (const r of rows.slice(1, 1001)){
     const rid = idCol >= 0 ? String(r[idCol] || '').trim() : '';
     if (rid && have.has(rid)){ dup++; continue; }
@@ -5299,10 +5308,10 @@ async function importStudiesFile(f){
       over[k] = !IMPORT_TEXT.has(k) && /^-?\d+(?:[.,]\d+)?$/.test(v) ? Number(v.replace(',', '.')) : v; });
     const rec = withInputs(over, () => snapshotRecord());
     if (atCol >= 0 && r[atCol] && !isNaN(Date.parse(r[atCol]))) rec.savedAt = new Date(Date.parse(r[atCol])).toISOString();
-    const res = await putRecord(/^[A-Za-z0-9_-]{4,40}$/.test(rid) ? rid : newId(), rec); if (res === 'full' || res === 'fail') break; n++;
+    const nid = /^[A-Za-z0-9_-]{4,40}$/.test(rid) ? rid : newId(); const res = await putRecord(nid, rec); if (res === 'full' || res === 'fail') break; n++; ids.push(nid);
   }
   Store.onchange();
-  return { n, dup, cols: keys.filter(Boolean).length, unknown };
+  return { n, dup, ids, cols: keys.filter(Boolean).length, unknown };
 }
 
 const STH = ['Study code', 'Study entry date', 'Saved', 'LVEF', 'Read time', 'Attending', 'Diastology, ASE 2025', 'Diastology, ASE/EACVI 2016', 'Cath', 'Summary', ''];
@@ -5320,17 +5329,18 @@ page('studies', 'Saved studies', 'report', root => {
   xfile.addEventListener('change', async () => { const f = xfile.files && xfile.files[0]; xfile.value = ''; if (!f) return;
     istat.hidden = false; istat.textContent = 'Reading ' + f.name + '…'; const r = await importStudiesFile(f);
     istat.textContent = r.err ? r.err : r.n + (r.n === 1 ? ' study' : ' studies') + ' imported from ' + f.name + ', using ' + r.cols + ' matched column' + (r.cols === 1 ? '' : 's') + '.' + (r.dup ? ' ' + r.dup + ' already saved here, skipped.' : '') + (r.unknown.length ? ' Ignored ' + r.unknown.length + ' column' + (r.unknown.length === 1 ? '' : 's') + ': ' + r.unknown.slice(0, 8).join(', ') + (r.unknown.length > 8 ? '…' : '') + '.' : '');
-    if (!r.err) toast(r.n + ' studies imported'); });
+    if (!r.err){ toast(r.n + ' studies imported'); undoImport(r.ids); } });
   file.addEventListener('change', async () => {
     const f = file.files && file.files[0]; file.value = ''; if (!f) return;
     if (/\.(xlsx|csv)$/i.test(f.name)){ istat.hidden = false; istat.textContent = 'Reading ' + f.name + '…'; const r = await importStudiesFile(f);
-      istat.textContent = r.err ? r.err : r.n + (r.n === 1 ? ' study' : ' studies') + ' imported from ' + f.name + '.' + (r.dup ? ' ' + r.dup + ' already saved here, skipped.' : ''); if (!r.err) toast(r.n + ' studies imported'); return; }
+      istat.textContent = r.err ? r.err : r.n + (r.n === 1 ? ' study' : ' studies') + ' imported from ' + f.name + '.' + (r.dup ? ' ' + r.dup + ' already saved here, skipped.' : ''); if (!r.err){ toast(r.n + ' studies imported'); undoImport(r.ids); } return; }
     let list = null; try { list = JSON.parse(await f.text()); } catch (e) {}
     if (!Array.isArray(list)){ toast('That file is not a backup made by this page.'); return; }
-    await ensureStore(); let n = 0;
+    await ensureStore(); let n = 0; const ids = [];
     for (const r of list.slice(0, 500)){ if (!r || typeof r.inputs !== 'string') continue; const rec = { savedAt: String(r.savedAt || new Date().toISOString()), pid: String(r.pid || ''), date: String(r.date || ''), statement: String(r.statement || '').slice(0, 600), crit: !!r.crit, n: Number(r.n) || 0, inputs: r.inputs }; if (typeof r.lvef === 'number') rec.lvef = r.lvef; for (const f of ['dia25', 'dia16', 'diaMatch']) if (typeof r[f] === 'string') rec[f] = r[f];
-      const res = await putRecord(/^[A-Za-z0-9_-]{4,40}$/.test(r.id || '') ? r.id : newId(), rec); if (res === 'full' || res === 'fail') break; n++; }
+      const nid = /^[A-Za-z0-9_-]{4,40}$/.test(r.id || '') ? r.id : newId(); const res = await putRecord(nid, rec); if (res === 'full' || res === 'fail') break; n++; ids.push(nid); }
     Store.onchange(); toast(n + (n === 1 ? ' study imported' : ' studies imported'));
+    istat.hidden = false; istat.textContent = n + (n === 1 ? ' study' : ' studies') + ' imported from ' + f.name + '.'; undoImport(ids);
   });
   const tools = el('div', { class: 'toolbar' },
     el('button', { class: 'btn primary', type: 'button', onclick: () => saveCurrent(false) }, 'Save the open study'),
@@ -5341,6 +5351,17 @@ page('studies', 'Saved studies', 'report', root => {
     el('button', { class: 'btn', type: 'button', onclick: () => file.click() }, 'Import backup'), file,
     el('button', { class: 'btn', type: 'button', title: 'One row per study; column headings named like the measurements', onclick: () => xfile.click() }, 'Import Excel or CSV'), xfile);
   const istat = el('p', { class: 'p-ref', hidden: true, style: 'margin:-4px 0 12px' });
+  function undoImport(ids){ if (!ids || !ids.length) return; const lab = 'Remove the ' + ids.length + (ids.length === 1 ? ' study' : ' studies') + ' just imported';
+    istat.append(' ', twiceBtn(el('button', { class: 'btn small', type: 'button' }, lab), lab, async () => { await deleteMany(ids); istat.hidden = true; })); }
+  /* select several saved studies to delete them together */
+  const sel = new Set(), selInfo = el('span', { class: 'p-ref' });
+  const selAll = el('button', { class: 'btn small', type: 'button', onclick: () => { for (const r of Store.list) sel.add(r.id); render(); } }, 'Select all');
+  const selNone = el('button', { class: 'btn small', type: 'button', onclick: () => { sel.clear(); render(); } }, 'Clear selection');
+  const selDel = twiceBtn(el('button', { class: 'btn small', type: 'button', style: 'color:var(--bad);border-color:var(--bad)' }, 'Delete selected'), 'Delete selected', async () => { const ids = [...sel]; sel.clear(); await deleteMany(ids); });
+  const selbar = el('div', { class: 'toolbar', style: 'align-items:center;margin:4px 0 8px' }, selInfo, selAll, selNone, selDel);
+  function selSync(){ const have = new Set(Store.list.map(r => r.id)); for (const id of [...sel]) if (!have.has(id)) sel.delete(id);
+    selbar.hidden = !Store.list.length; selInfo.textContent = sel.size ? sel.size + ' of ' + Store.list.length + ' selected' : 'Tick studies to delete several at once';
+    selNone.hidden = selDel.hidden = !sel.size; selAll.hidden = sel.size === Store.list.length; }
   const fmtWhen = t => { const d = new Date(t); return isNaN(d) ? '' : d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) + ', ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }); };
   function render(){
     where.textContent = Store.mode === 'cloud' ? 'Every study you save is kept in your own private space in GlassEcho. Only you can see it, on any device where you are signed in. Use the study code, not a name or record number, unless your institution allows it.'
@@ -5353,8 +5374,10 @@ page('studies', 'Saved studies', 'report', root => {
     for (const rec of Store.list){
       const open = el('button', { class: 'btn small', type: 'button' }, 'Open');
       open.addEventListener('click', () => openRecord(rec));
-      const del = twiceBtn(el('button', { class: 'btn small quiet', type: 'button' }, 'Delete'), 'Delete', () => deleteRecord(rec)), dia = diaOf(rec);
-      const tr = el('tr', { class: current.id === rec.id ? 'rowhl' : null }, el('td', null, el('b', null, rec.pid || 'No ID'), current.id === rec.id ? el('span', { class: 'p-ref', style: 'display:block' }, dirty ? 'open now, with unsaved changes' : 'open now') : null),
+      const del = twiceBtn(el('button', { class: 'btn small', type: 'button', style: 'color:var(--bad)' }, 'Delete'), 'Delete', () => deleteRecord(rec)), dia = diaOf(rec);
+      const cb = el('input', { type: 'checkbox', class: 'stsel', 'aria-label': 'Select ' + (rec.pid || 'study') }); cb.checked = sel.has(rec.id);
+      cb.addEventListener('change', () => { if (cb.checked) sel.add(rec.id); else sel.delete(rec.id); selSync(); });
+      const tr = el('tr', { class: current.id === rec.id ? 'rowhl' : null }, el('td', null, el('label', { style: 'display:inline-flex;align-items:center;gap:8px;cursor:pointer' }, cb, el('b', null, rec.pid || 'No ID')), current.id === rec.id ? el('span', { class: 'p-ref', style: 'display:block' }, dirty ? 'open now, with unsaved changes' : 'open now') : null),
         el('td', { class: 'sc' }, rec.date || ''), el('td', { class: 'sc' }, fmtWhen(rec.savedAt)), el('td', { class: 'sc' }, typeof rec.lvef === 'number' ? fixed(rec.lvef, 0) + '%' : ''), el('td', { class: 'sc' }, typeof rec.readMin === 'number' ? minsText(rec.readMin * 60) : ''), el('td', { class: 'sc' }, (() => { const go = () => { openRecord(rec); setTimeout(() => { location.hash = 'compare'; }, 0); };
           return rec.att ? el('button', { type: 'button', class: 'chip attchip ' + (rec.att.a / rec.att.n >= 0.8 ? 'ok' : rec.att.a / rec.att.n >= 0.6 ? 'warn' : 'bad'), title: 'Open the attending comparison' + (rec.att.code ? ' (' + rec.att.code + ')' : ''), onclick: go }, rec.att.a + '/' + rec.att.n + ' ›')
             : el('button', { type: 'button', class: 'btn small quiet', title: 'Open this study and add the attending read', onclick: go }, 'Add'); })()),
@@ -5365,12 +5388,12 @@ page('studies', 'Saved studies', 'report', root => {
         el('td', null, rec.crit ? el('span', { class: 'chip bad' }, 'Critical') : null, ' ', String(rec.statement || '').split('\n')[0].slice(0, 110)), el('td', { class: 'stact', style: 'white-space:nowrap' }, open, ' ', del));
       add(tb, tr); [...tr.children].forEach((td, i) => { td.dataset.l = STH[i] || ''; });
     }
-    empty.hidden = Store.list.length > 0 || Store.mode === 'pending';
+    selSync(); empty.hidden = Store.list.length > 0 || Store.mode === 'pending';
     empty.textContent = 'No saved studies yet. Enter a study, then choose Save study at the top of any page.';
   }
   const counts = countsCard();
   Store.onchange = () => { scrubSaved(); render(); counts.render(); qualityRefresh(); }; bind(render); bind(counts.render);
-  add(root, where, tools, istat, move, counts.node, el('div', { class: 'tbl', style: 'margin-top:0' }, el('table', { class: 'studytbl' }, el('thead', null, el('tr', null, STH.map(t => el('th', null, t)))), tb), empty),
+  add(root, where, tools, istat, move, counts.node, selbar, el('div', { class: 'tbl', style: 'margin-top:0' }, el('table', { class: 'studytbl' }, el('thead', null, el('tr', null, STH.map(t => el('th', null, t)))), tb), empty),
     el('p', { class: 'foot' }, 'The Excel and CSV exports have one row per study: every entered measurement, the wall-motion scores, the report details and the main calculated results. The Excel file adds a second sheet that compares the two diastology classifications study by study. Opening a saved study replaces what is on screen; saving again updates the same record.'));
 });
 
