@@ -637,7 +637,8 @@ td.dd{background:color-mix(in srgb,var(--warn-bg) 55%,transparent)}
 .attg .atttbl th:nth-child(1){width:28%} .attg .atttbl th:nth-child(2){width:24%} .attg .atttbl th:nth-child(3){width:34%} .attg .atttbl th:nth-child(4){width:14%}
 .qc .atttbl th:nth-child(1){width:34%} .qc .atttbl th:nth-child(2), .qc .atttbl th:nth-child(3), .qc .atttbl th:nth-child(4){width:11%} .qc .atttbl th:nth-child(5){width:20%}
 .bar a.btn{text-decoration:none}
-@media (max-width:560px){ #clear{display:none} }
+@media (max-width:420px){ .bar .btn.small{padding-left:8px; padding-right:8px} .bar{gap:6px; padding-left:10px; padding-right:10px} }
+@media (max-width:350px){ .bar .btn.small{font-size:12.5px; padding-left:6px; padding-right:6px} .bar{gap:4px} }
 .atttbl th{text-align:left; font-weight:600; color:var(--muted); font-size:12.5px; padding:6px 8px; border-bottom:1px solid var(--line)}
 .atttbl td{padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:middle}
 .atttbl td.attm{color:var(--ink)}
@@ -702,7 +703,7 @@ td.dd{background:color-mix(in srgb,var(--warn-bg) 55%,transparent)}
     <span class="flag" id="flag"></span>
     <span id="timerslot"></span>
     <span class="savest" id="savest"></span>
-    <button class="btn small" id="openbtn" type="button">Open<span class="lg"> saved</span></button>
+    <button class="btn small" id="openbtn" type="button" hidden>Open<span class="lg"> saved</span></button>
     <button class="btn small primary" id="save" type="button">Save<span class="lg"> study</span></button>
     <button class="btn small" id="clear" type="button">Clear all</button>
   </header>
