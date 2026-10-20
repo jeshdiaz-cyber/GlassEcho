@@ -610,6 +610,50 @@ td.dd{background:color-mix(in srgb,var(--warn-bg) 55%,transparent)}
 .qmx td.off{background:color-mix(in srgb, var(--bad) calc(var(--a) * 100%), var(--surface))}
 @media (max-width:1100px){ .qkpis{grid-template-columns:repeat(3,minmax(0,1fr))} .qgrid.three{grid-template-columns:minmax(0,1fr) minmax(0,1fr)} }
 @media (max-width:820px){ .qgrid.two, .qgrid.three{grid-template-columns:minmax(0,1fr)} .qkpis{grid-template-columns:repeat(2,minmax(0,1fr))} .qb{grid-template-columns:minmax(0,9.5em) minmax(0,1fr) 3em; font-size:13px} }
+.wm-auto{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px; margin:18px 0}
+.wm-auto h2{font-size:17px; margin-bottom:2px}
+.wmfill{display:grid; gap:10px; margin-top:10px}
+.wmf{display:grid; grid-template-columns:minmax(0,8.5em) minmax(0,1fr); gap:10px; align-items:center}
+.wmn small{display:block}
+.wmb .btn{padding:4px 9px}
+.wmn{display:inline-flex; align-items:center; gap:6px; font-weight:600; flex-wrap:wrap}
+.wmn i{width:12px; height:12px; border-radius:3px; display:inline-block}
+.wmn small{font-weight:400; color:var(--muted); font-size:12px}
+.wmb{display:flex; flex-wrap:wrap; gap:6px}
+.wmb .btn.s2{border-color:var(--s2)} .wmb .btn.s3{border-color:var(--s3)} .wmb .btn.s4{border-color:var(--s4)} .wmb .btn.s1{border-color:var(--s1)}
+.wmfoot{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:center; margin-top:12px; font-size:13.5px}
+.wmfoot label{display:inline-flex; gap:6px; align-items:center}
+.wmv{font-size:14.5px; line-height:1.45; margin:6px 0 12px; padding:8px 12px; border-radius:var(--r-sm); background:var(--sunk)}
+.wmv.bad{background:var(--bad-bg); color:var(--ink)} .wmv.ok{background:var(--ok-bg)} .wmv.warn{background:var(--warn-bg)}
+.wmt{display:grid; grid-template-columns:4.5em minmax(0,1fr) 6.5em auto; gap:10px; align-items:center; padding:5px 0; font-size:13.5px}
+.wmbar{height:12px; background:var(--sunk); border-radius:4px; position:relative; overflow:hidden}
+.wmbar b{position:absolute; inset:0 auto 0 0; background:var(--muted); border-radius:4px}
+.wmt.best .wmbar b{background:var(--bad)}
+.wmc{font-variant-numeric:tabular-nums; color:var(--muted)}
+@media (max-width:900px){ .wm-auto{grid-template-columns:minmax(0,1fr)} .wmf{grid-template-columns:minmax(0,1fr)} }
+.vnbox{display:flex; flex-wrap:wrap; gap:8px 12px; align-items:center; margin-top:14px; padding-top:12px; border-top:1px solid var(--line)}
+.vnbox .p-ref{flex:1 1 16em}
+.atttbl{width:100%; border-collapse:collapse; font-size:14px; table-layout:fixed}
+.attg .atttbl th:nth-child(1){width:28%} .attg .atttbl th:nth-child(2){width:24%} .attg .atttbl th:nth-child(3){width:34%} .attg .atttbl th:nth-child(4){width:14%}
+.qc .atttbl th:nth-child(1){width:34%} .qc .atttbl th:nth-child(2), .qc .atttbl th:nth-child(3), .qc .atttbl th:nth-child(4){width:11%} .qc .atttbl th:nth-child(5){width:20%}
+.bar a.btn{text-decoration:none}
+@media (max-width:560px){ #clear{display:none} }
+.atttbl th{text-align:left; font-weight:600; color:var(--muted); font-size:12.5px; padding:6px 8px; border-bottom:1px solid var(--line)}
+.atttbl td{padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:middle}
+.atttbl td.attm{color:var(--ink)}
+.atttbl .fld{max-width:16em}
+.atttbl tr.attgh td{font-weight:600; background:var(--sunk); font-size:13px}
+.attg{margin-bottom:16px}
+.attg h2{font-size:17px; margin-bottom:8px}
+.attbig b{font:600 30px var(--head)}
+.attbig span{color:var(--muted)}
+.attmeter{display:flex; height:10px; border-radius:5px; background:var(--sunk); overflow:hidden; margin-top:8px; max-width:520px}
+.attmeter i.a{background:var(--ok)} .attmeter i.n{background:var(--warn); opacity:.7}
+.attbadge{font-variant-numeric:tabular-nums; color:var(--accent); font-weight:600}
+@media (max-width:820px){ .atttbl thead{display:none} .atttbl tr{display:grid; grid-template-columns:1fr auto; padding:6px 0; border-bottom:1px solid var(--line)} .atttbl td{border:0; padding:3px 4px} .atttbl td:nth-child(3){grid-column:1/-1} .bar a.btn .attbadge{display:none} }
+.efr-w{display:inline-flex; flex-wrap:wrap; align-items:center; gap:6px; margin-left:8px; font-size:13.5px; color:var(--muted)}
+.fld.efr{width:auto; padding:3px 8px; font-size:14px}
+.efr-t{font-size:12.5px}
 </style>
 </head>
 <body>
@@ -1878,7 +1922,7 @@ Object.assign(FORMULAS,{
 "Report!B69":()=>CAT(CAT(CAT(CAT("Stenosis: ",IF(EQ(g("Echo!B125"),""),()=>"none assessed",()=>CAT(CAT(CAT(CAT(CAT(CAT(CAT(g("Echo!B125")," (MVA "),IF(EQ(g("Echo!B116"),""),()=>"—",()=>TEXT_(g("Echo!B116"),"0.0")))," cm² by PHT; mean gradient "),IF(EQ(g("Echo!B114"),""),()=>"—",()=>TEXT_(g("Echo!B114"),"0")))," mmHg at HR "),IF(EQ(g("Echo!B16"),""),()=>"—",()=>TEXT_(g("Echo!B16"),"0"))),")"))),". Regurgitation: "),IF(EQ(g("Echo!B144"),""),()=>"not assessed",()=>CAT(CAT(CAT(CAT(CAT(CAT(CAT(g("Echo!B144")," (VC "),IF(EQ(g("Echo!B129"),""),()=>"—",()=>TEXT_(g("Echo!B129"),"0.0")))," cm, EROA "),IF(EQ(g("Echo!B135"),""),()=>"—",()=>TEXT_(g("Echo!B135"),"0.00")))," cm², RVol "),IF(EQ(g("Echo!B136"),""),()=>"—",()=>TEXT_(g("Echo!B136"),"0")))," mL)"))),"."),
 "Report!D69":()=>IF(OR_([[EQ(g("Report!B34"),""),0],[EQ(g("Report!B34"),"No prior study available"),0]]),()=>"No prior echocardiogram available for comparison.",()=>CAT(CAT(CAT(CAT(CAT("Compared with the prior echocardiogram",IF(EQ(g("Report!B35"),""),()=>"",()=>CAT(" dated ",g("Report!B35"))))," ("),IF(EQ(g("Report!B34"),"Side-by-side image review"),()=>"by side-by-side image review",()=>"by report review only")),"): "),IF(EQ(COUNTIF_(R("Report",4,60,4,68),"?*"),0),()=>"no significant interval change.",()=>CAT(MID_(CAT(CAT(CAT(CAT(CAT(CAT(CAT(CAT(IF(EQ((g("Report!D60")),""),()=>"",()=>CAT("; ",(g("Report!D60")))),IF(EQ((g("Report!D61")),""),()=>"",()=>CAT("; ",(g("Report!D61"))))),IF(EQ((g("Report!D62")),""),()=>"",()=>CAT("; ",(g("Report!D62"))))),IF(EQ((g("Report!D63")),""),()=>"",()=>CAT("; ",(g("Report!D63"))))),IF(EQ((g("Report!D64")),""),()=>"",()=>CAT("; ",(g("Report!D64"))))),IF(EQ((g("Report!D65")),""),()=>"",()=>CAT("; ",(g("Report!D65"))))),IF(EQ((g("Report!D66")),""),()=>"",()=>CAT("; ",(g("Report!D66"))))),IF(EQ((g("Report!D67")),""),()=>"",()=>CAT("; ",(g("Report!D67"))))),IF(EQ((g("Report!D68")),""),()=>"",()=>CAT("; ",(g("Report!D68"))))),3,32767),".")))),
 "Report!B70":()=>CAT(CAT(CAT("Regurgitation: ",IF(EQ(g("Echo!B157"),""),()=>"not assessed",()=>CAT(CAT(g("Echo!B157"),IF(EQ(g("Echo!B147"),""),()=>"",()=>CAT(CAT(" (VC ",TEXT_(g("Echo!B147"),"0.0"))," cm)"))),IF(EQ(g("Echo!B157"),"Mild TR"),()=>" — may be within normal limits if the valve is structurally normal",()=>"")))),IF(EQ(g("Echo!D164"),""),()=>"",()=>CAT(". Stenosis: ",g("Echo!D164")))),"."),
-"Report!D70":()=>IF(OR_([[EQ(g("Report!B22"),"Poor"),0],[EQ(g("Report!B22"),"Non-diagnostic"),0],[EQ(g("Report!B25"),"Inadequate"),0]]),()=>CAT(CAT(CAT(CAT(CAT("Study limited by ",LOWER_(g("Report!B22")))," image quality"),IF(EQ(g("Report!B23"),""),()=>"",()=>CAT(CAT(" (",LOWER_(g("Report!B23"))),")"))),"; interpret with caution — consider "),IF(EQ(g("Report!B19"),"Yes"),()=>"alternative imaging (transesophageal echocardiography, CMR or CT).",()=>"an ultrasound enhancing agent or alternative imaging.")),()=>""),
+"Report!D70":()=>IF(OR_([[EQ(g("Report!B22"),"Poor"),0],[EQ(g("Report!B22"),"Non-diagnostic"),0],[EQ(g("Report!Z25"),"Inadequate"),0]]),()=>CAT(CAT(CAT(CAT(CAT("Study limited by ",LOWER_(g("Report!B22")))," image quality"),IF(EQ(g("Report!B23"),""),()=>"",()=>CAT(CAT(" (",LOWER_(g("Report!B23"))),")"))),"; interpret with caution — consider "),IF(EQ(g("Report!B19"),"Yes"),()=>"alternative imaging (transesophageal echocardiography, CMR or CT).",()=>"an ultrasound enhancing agent or alternative imaging.")),()=>""),
 "Report!B71":()=>IF(AND_([[EQ(g("Echo!B167"),""),0],[EQ(g("Echo!B177"),""),0]]),()=>"Not well visualized / not assessed.",()=>CAT(IF(EQ(g("Echo!B167"),""),()=>"",()=>CAT(CAT(CAT(CAT("Stenosis: ",g("Echo!D167"))," (peak gradient "),TEXT_(g("Echo!B168"),"0"))," mmHg). ")),IF(EQ(g("Echo!B177"),""),()=>"",()=>CAT(CAT("Regurgitation: ",g("Echo!B177")),".")))),
 "Report!D71":()=>IF(EQ(g("Report!D26"),""),()=>"",()=>IF(EQ(g("Report!B47"),""),()=>"[Document communication of critical/urgent result to the care team]",()=>CAT(CAT(CAT("Critical/urgent result communicated to ",g("Report!B47")),IF(EQ(g("Report!B48"),""),()=>"",()=>CAT(" on ",g("Report!B48")))),"."))),
 "Report!B72":()=>IF(EQ(g("Prosthetic Valves!B108"),""),()=>"None.",()=>CAT(g("Prosthetic Valves!B108"),".")),
@@ -1887,7 +1931,7 @@ Object.assign(FORMULAS,{
 "Report!B74":()=>CAT(CAT(CAT(CAT(CAT(CAT(CAT(CAT(CAT(CAT("IVC ",IF(EQ(g("Echo!B223"),""),()=>"—",()=>TEXT_(DIV(g("Echo!B223"),10),"0.0")))," cm, "),IF(EQ(g("Echo!B224"),"Y"),()=>">50% collapse",()=>IF(EQ(g("Echo!B224"),"N"),()=>"<50% collapse",()=>"collapse not assessed")))," → estimated RA pressure "),IF(EQ(g("Echo!B225"),""),()=>"unable to assess",()=>CAT(TEXT_(g("Echo!B225"),"0")," mmHg"))),". Estimated PASP "),IF(EQ(g("Echo!B226"),""),()=>"unable to assess (no adequate TR signal)",()=>CAT(TEXT_(g("Echo!B226"),"0")," mmHg"))),IF(EQ(g("Echo!B238"),""),()=>"",()=>CAT(". ",g("Echo!B238")))),IF(EQ(g("Echo!B234"),""),()=>"",()=>CAT(CAT("; main PA ",TEXT_(DIV(g("Echo!B234"),10),"0.0"))," cm"))),"."),
 "Report!B75":()=>CAT(IF(EQ(g("Echo!D258"),""),()=>"Not assessed.",()=>CAT(g("Echo!D258"),".")),IF(EQ(g("Echo!B259"),"Y"),()=>CAT(CAT(" ",g("Echo!D259")),"."),()=>IF(OR_([[EQ(g("Echo!B258"),""),0],[EQ(N_(g("Echo!B258")),0),0]]),()=>"",()=>" No echocardiographic signs of tamponade."))),
 "Report!B76":()=>IF(EQ(g("Report!B31"),""),()=>"None noted.",()=>CAT(g("Report!B31"),".")),
-"Report!B77":()=>CAT(CAT(CAT(CAT(CAT(CAT(g("Report!B22")," image quality"),IF(EQ(g("Report!B23"),""),()=>"",()=>CAT(CAT(" (",LOWER_(g("Report!B23"))),")"))),IF(EQ(g("Report!B24"),""),()=>"; all acoustic windows interpretable",()=>CAT("; windows not obtained or not interpretable: ",LOWER_(g("Report!B24"))))),". Diagnostic adequacy: "),LOWER_(g("Report!B25"))),"."),
+"Report!B77":()=>CAT(CAT(CAT(CAT(CAT(CAT(g("Report!B22")," image quality"),IF(EQ(g("Report!B23"),""),()=>"",()=>CAT(CAT(" (",LOWER_(g("Report!B23"))),")"))),IF(EQ(g("Report!B24"),""),()=>"; all acoustic windows interpretable",()=>CAT("; windows not obtained or not interpretable: ",LOWER_(g("Report!B24"))))),". Diagnostic adequacy: "),LOWER_(g("Report!Z25"))),"."),
 "Report!B78":()=>CAT(CAT(CAT(CAT(CAT("Ultrasound enhancing agent: ",IF(EQ(g("Report!B19"),"Yes"),()=>CAT(CAT("yes",IF(EQ(g("Report!C20"),""),()=>"",()=>CAT(" — ",g("Report!C20")))),IF(EQ(g("Report!B20"),""),()=>"",()=>CAT(", ",g("Report!B20")))),()=>"none")),". Agitated saline: "),LOWER_(g("Report!B21"))),"."),IF(EQ(g("Report!B18"),""),()=>"",()=>CAT(CAT(" Platform: ",g("Report!B18")),"."))),
 "Report!B79":()=>CAT(CAT(CAT(CAT(CAT(CAT(CAT("Ordering: ",IF(EQ(g("Report!B14"),""),()=>"—",()=>g("Report!B14")))," · Performed by: "),IF(EQ(g("Report!B15"),""),()=>"—",()=>g("Report!B15"))),IF(EQ(g("Report!B17"),""),()=>"",()=>CAT(" · Trainee: ",g("Report!B17"))))," · Interpreting physician: "),IF(EQ(g("Report!B16"),""),()=>"—",()=>g("Report!B16")))," (electronically signed — add date/time)"),
 "Report!B81":()=>CAT(CAT(UPPER_(g("Report!B9")),CHAR_(10)),MID_(CAT(CAT(CAT(CAT(CAT(CAT(CAT(CAT(CAT(CAT(CAT(CAT(CAT(CAT(CAT(CAT(CAT(CAT(CAT(IF(EQ((CAT(CAT(g("Report!A60"),": "),g("Report!B60"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A60"),": "),g("Report!B60"))))),IF(EQ((CAT(CAT(g("Report!A61"),": "),g("Report!B61"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A61"),": "),g("Report!B61")))))),IF(EQ((CAT(CAT(g("Report!A62"),": "),g("Report!B62"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A62"),": "),g("Report!B62")))))),IF(EQ((CAT(CAT(UPPER_(g("Report!A63")),": "),g("Report!B63"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(UPPER_(g("Report!A63")),": "),g("Report!B63")))))),IF(EQ((CAT(CAT(g("Report!A64"),": "),g("Report!B64"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A64"),": "),g("Report!B64")))))),IF(EQ((CAT(CAT(g("Report!A65"),": "),g("Report!B65"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A65"),": "),g("Report!B65")))))),IF(EQ((CAT(CAT(g("Report!A66"),": "),g("Report!B66"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A66"),": "),g("Report!B66")))))),IF(EQ((CAT(CAT(g("Report!A67"),": "),g("Report!B67"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A67"),": "),g("Report!B67")))))),IF(EQ((CAT(CAT(g("Report!A68"),": "),g("Report!B68"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A68"),": "),g("Report!B68")))))),IF(EQ((CAT(CAT(g("Report!A69"),": "),g("Report!B69"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A69"),": "),g("Report!B69")))))),IF(EQ((CAT(CAT(g("Report!A70"),": "),g("Report!B70"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A70"),": "),g("Report!B70")))))),IF(EQ((CAT(CAT(g("Report!A71"),": "),g("Report!B71"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A71"),": "),g("Report!B71")))))),IF(EQ((CAT(CAT(g("Report!A72"),": "),g("Report!B72"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A72"),": "),g("Report!B72")))))),IF(EQ((CAT(CAT(g("Report!A73"),": "),g("Report!B73"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A73"),": "),g("Report!B73")))))),IF(EQ((CAT(CAT(g("Report!A74"),": "),g("Report!B74"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A74"),": "),g("Report!B74")))))),IF(EQ((CAT(CAT(g("Report!A75"),": "),g("Report!B75"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A75"),": "),g("Report!B75")))))),IF(EQ((CAT(CAT(g("Report!A76"),": "),g("Report!B76"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A76"),": "),g("Report!B76")))))),IF(EQ((CAT(CAT(g("Report!A77"),": "),g("Report!B77"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A77"),": "),g("Report!B77")))))),IF(EQ((CAT(CAT(g("Report!A78"),": "),g("Report!B78"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A78"),": "),g("Report!B78")))))),IF(EQ((CAT(CAT(g("Report!A79"),": "),g("Report!B79"))),""),()=>"",()=>CAT(CAT(CHAR_(10),CHAR_(10)),(CAT(CAT(g("Report!A79"),": "),g("Report!B79")))))),3,32767)),
@@ -2406,7 +2450,7 @@ function autoMass(){
 /* one line for the summary statement: the embolic sources found */
 function embolismLine(){ const s = embolicSources(); if (!s.hi.length && !s.lo.length) return '';
   return 'Cardiac source of embolism: ' + [s.hi.length && 'high potential: ' + s.hi.join(', '), s.lo.length && 'low potential: ' + s.lo.join(', ')].filter(Boolean).join('; ') + '.'; }
-function summaryText(){ const base = String(g('Report!B4') || ''), e = embolismLine(); return addDiaLine(e ? (/^Enter measurements/.test(base) ? e : base + '\n' + e) : base, false); }
+function summaryText(){ const base = withEFRange(String(g('Report!B4') || '')), e = embolismLine(); return addDiaLine(e ? (/^Enter measurements/.test(base) ? e : base + '\n' + e) : base, false); }
 
 /* ---------- ASE 2025 diastology when indeterminate: what is missing, what each missing value would decide, and the next step (added in this web version) ----------
    The outcomes are found by running the page's own ASE 2025 formulas on test values on either side of each cut-off. */
@@ -2826,6 +2870,8 @@ Object.assign(DEFAULTS, { 'Report!C11': null, 'Report!C20': null, [TM.sec]: null
   A[at(23)] = { r: 23, a: '  Reasons if suboptimal', in: { t: 'multi', o: IQ_REASONS } };
   A[at(24)] = { r: 24, a: '  Windows not obtained or not interpretable', in: { t: 'multi', o: IQ_WINDOWS } };
   A.unshift({ node: () => timerRow() });
+  for (const r of A) if (['Report!B19', 'Report!C20', 'Report!B20', 'Report!B21', 'Report!B22', 'Report!B23', 'Report!B24', 'Report!B25'].includes(r.k || 'Report!B' + r.r)) r.hide = true;
+  A.splice(A.findIndex(r => r.r === 19), 0, { node: () => iqSummaryRow() });
 })();
 /* the indication used by the report text and checks: the coded choice, then the details */
 FORMULAS['Report!Z11'] = () => {
@@ -2877,11 +2923,14 @@ function protocolRows(sec){
     return el('div', { class: 'prow', id, data: { input: key, view: '00 Clinical' } }, el('div', { class: 'p-label' }, el('label', { for: f.id }, label), ref ? el('p', { class: 'p-ref' }, ref) : null), el('div', { class: 'p-val wide' }, f.node, f.msg)); };
   const agent = q('Report!C20', { t: 'list', o: UEA_AGENTS, bl: 1 }, 'Enhancing agent', null, 'echo-q-uea-agent');
   const reasons = q('Report!B23', { t: 'multi', o: IQ_REASONS }, 'Reasons if suboptimal', 'Choose all that apply', 'echo-q-iq-why');
-  bind(() => { agent.hidden = g('Report!B19') !== 'Yes'; reasons.classList.toggle('dim', !/Fair|Poor|Non-diagnostic/.test(String(g('Report!B22') || '')) && !g('Report!B23')); });
-  return [el('p', { class: 'subhead' }, 'Image quality and protocol'),
+  const windows = q('Report!B24', { t: 'multi', o: IQ_WINDOWS }, 'Windows not obtained or not interpretable', null, 'echo-q-iq-win');
+  const dose = q('Report!B20', { t: 'text' }, 'Dose and reaction', 'Optional', 'echo-q-uea-dose');
+  bind(() => { const yes = g('Report!B19') === 'Yes', low = /Fair|Poor|Non-diagnostic/.test(String(g('Report!B22') || ''));
+    agent.hidden = dose.hidden = !yes; reasons.hidden = !low && !g('Report!B23'); windows.hidden = !low && !g('Report!B24'); });
+  return [el('p', { class: 'subhead' }, 'Image quality and protocol · a new case starts as excellent, no enhancing agent, no saline'),
     q('Report!B22', { t: 'list', o: ['Excellent', 'Good', 'Fair', 'Poor', 'Non-diagnostic'], bl: 1 }, 'Overall image quality', null, 'echo-q-iq'), reasons,
-    q('Report!B24', { t: 'multi', o: IQ_WINDOWS }, 'Windows not obtained or not interpretable', 'Leave empty if every window was usable', 'echo-q-iq-win'),
-    q('Report!B19', { t: 'list', o: ['No', 'Yes'], bl: 1 }, 'Ultrasound enhancing agent used', null, 'echo-q-uea'), agent,
+    windows,
+    q('Report!B19', { t: 'list', o: ['No', 'Yes'], bl: 1 }, 'Ultrasound enhancing agent used', null, 'echo-q-uea'), agent, dose,
     q('Report!B21', { t: 'list', o: ['Not performed', 'Negative', 'Positive early (atrial level shunt)', 'Positive late (intrapulmonary shunt)'], bl: 1 }, 'Agitated saline study', null, 'echo-q-saline')];
 }
 /* counts across the saved studies */
@@ -2911,6 +2960,150 @@ function countsCard(){
         tbl('Windows not obtained', c.win, c.n), tbl('Enhancing agent used', c.uea, c.n), tbl('Agent', c.agent, c.uea.find(x => x[0] === 'Yes') ? c.uea.find(x => x[0] === 'Yes')[1] : 0), tbl('Agitated saline study', c.sal, c.n)));
   };
   return { node: el('details', { class: 'card countsbox', open: true }, el('summary', null, el('h2', null, 'Counts across saved studies')), box), render };
+}
+
+
+/* ---------- wall motion by coronary territory: quick fill and culprit-vessel analysis (added in this web version) ----------
+   Territories follow ASE 2015 (Figure 5), as on the territory map: typical segments, plus variable-supply segments. */
+const WM_TERR = {
+  LAD: { core: [1, 2, 7, 8, 13, 14, 15], vari: [6, 9, 12, 16], basal: [1, 2], name: 'LAD' },
+  RCA: { core: [3, 4, 10], vari: [5, 9, 11], basal: [3, 4], name: 'RCA' },
+  LCx: { core: [5, 6, 11, 12, 16], vari: [], basal: [5, 6], name: 'LCx' }
+};
+const wmScore = i => { const v = INPUTS[segKey(i)]; return typeof v === 'number' ? v : null; };
+const wmList = a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+function wmAnalysis(){
+  const scored = []; for (let i = 1; i <= 16; i++) if (wmScore(i) != null) scored.push(i);
+  const ab = scored.filter(i => wmScore(i) > 1);
+  const can = (v, i) => WM_TERR[v].core.includes(i) || WM_TERR[v].vari.includes(i);
+  const V = ['LAD', 'RCA', 'LCx'];
+  const per = V.map(v => { const T = WM_TERR[v], all = T.core.concat(T.vari);
+    const abIn = ab.filter(i => can(v, i)), coreAb = T.core.filter(i => ab.includes(i)), coreScored = T.core.filter(i => scored.includes(i));
+    return { v, abIn, coreAb, core: T.core, coreScored, frac: T.core.length ? coreAb.length / T.core.length : 0, basal: T.basal.some(i => ab.includes(i)),
+      worst: Math.max(0, ...abIn.map(wmScore)) }; });
+  /* the smallest set of vessels that accounts for every abnormal segment */
+  let fit = [];
+  if (ab.length){
+    const sets = [['LAD'], ['RCA'], ['LCx'], ['LAD', 'RCA'], ['LAD', 'LCx'], ['RCA', 'LCx'], ['LAD', 'RCA', 'LCx']];
+    for (const n of [1, 2, 3]){
+      const ok = sets.filter(s => s.length === n && ab.every(i => s.some(v => can(v, i))) && s.every(v => ab.some(i => can(v, i) && !s.some(w => w !== v && can(w, i)))));
+      if (ok.length){
+        /* rank by how much of each vessel's typical territory is involved */
+        const score = s => s.reduce((t, v) => t + per.find(p => p.v === v).coreAb.length, 0);
+        fit = ok.sort((a, b) => score(b) - score(a)); break;
+      }
+    }
+  }
+  const ali = [13, 14, 15, 16], apicalAll = ali.every(i => ab.includes(i)), basalSpared = [1, 2, 3, 4, 5, 6].every(i => scored.includes(i) && wmScore(i) === 1);
+  const midRing = [7, 8, 9, 10, 11, 12].filter(i => ab.includes(i)).length;
+  return { scored, ab, per, fit, ballooning: apicalAll && basalSpared && midRing >= 4 };
+}
+function wmVerdict(a){
+  if (!a.scored.length) return { t: 'Score the segments, or fill a territory above, to see the culprit-vessel analysis.', tone: '' };
+  if (!a.ab.length) return { t: 'No abnormal segments: no regional pattern.', tone: 'ok' };
+  let tk = null; try { tk = takoResult(); } catch (e) {}
+  const tkPat = tk && tk.pattern ? tk.pattern.toLowerCase() : '';
+  const best = a.fit[0] || [];
+  if (tkPat && best.length !== 1) return { t: 'Circumferential ' + tkPat + ' pattern extending beyond one coronary territory: suggests takotsubo syndrome. Exclude a culprit coronary lesion and myocarditis; details on the Cardiomyopathies page.', tone: 'warn' };
+  if (best.length === 1){
+    const p = a.per.find(x => x.v === best[0]), alt = a.fit.filter(s => s.length === 1).slice(1).map(s => s[0]);
+    let t = 'Pattern fits a single territory: ' + best[0] + ' (' + p.coreAb.length + ' of ' + p.core.length + ' typical segments' + (p.abIn.length > p.coreAb.length ? ', plus ' + (p.abIn.length - p.coreAb.length) + ' variable-supply segment' + (p.abIn.length - p.coreAb.length > 1 ? 's' : '') : '') + ').';
+    if (alt.length) t += ' The abnormal segments are also compatible with ' + wmList(alt) + ', because they lie in shared (variable-supply) territory.';
+    if (p.basal && best[0] === 'LAD') t += ' Basal anterior/anteroseptal involvement suggests a proximal LAD lesion.';
+    if (best[0] === 'RCA') t += ' Check the RV free wall: RV involvement points to a proximal RCA lesion.';
+    if (best[0] === 'LAD' && a.ab.includes(15) && a.ab.includes(16) && !a.ab.some(i => [3, 4, 10].includes(i))) t += ' Apical inferior and lateral involvement fits a wraparound LAD.';
+    if (tkPat) t += ' The circumferential ' + tkPat + ' pattern with basal sparing is also typical of takotsubo syndrome: coronary angiography tells them apart.';
+    return { t, tone: 'bad' };
+  }
+  if (best.length > 1) return { t: 'Not confined to one territory: the abnormal segments need ' + wmList(best) + ' (multivessel disease), or a non-coronary cause such as cardiomyopathy, myocarditis, sarcoidosis or conduction/pacing.', tone: 'bad' };
+  return { t: 'Pattern not explained by coronary territories.', tone: 'warn' };
+}
+function wmTerrCard(){
+  const box = el('section', { class: 'card wm-terr' }, el('h2', null, 'Culprit vessel'));
+  const body = el('div'); add(box, body);
+  bind(() => {
+    const a = wmAnalysis(), vd = wmVerdict(a); body.replaceChildren();
+    add(body, el('p', { class: 'wmv ' + vd.tone }, vd.t));
+    if (!a.scored.length) return;
+    for (const p of a.per){
+      const best = a.fit[0] && a.fit[0].includes(p.v);
+      add(body, el('div', { class: 'wmt' + (best ? ' best' : '') }, el('span', { class: 'wmn' }, el('i', { style: `background:var(--t-${p.v})` }), p.v),
+        el('span', { class: 'wmbar', title: p.v + ': ' + p.coreAb.length + ' of ' + p.core.length + ' typical segments abnormal' }, el('b', { style: 'width:' + Math.round(100 * p.frac) + '%' })),
+        el('span', { class: 'wmc' }, p.coreAb.length + '/' + p.core.length + (p.abIn.length > p.coreAb.length ? ' +' + (p.abIn.length - p.coreAb.length) + ' var.' : '')),
+        best ? el('span', { class: 'chip bad' }, a.fit[0].length === 1 ? 'Likely culprit' : 'Involved') : null));
+    }
+    add(body, el('p', { class: 'p-ref', style: 'margin-top:8px' }, 'Typical segments abnormal / typical segments in the territory; "var." = abnormal variable-supply segments. Coronary anatomy varies: confirm with angiography.'));
+  });
+  return box;
+}
+function wmFillCard(sync){
+  let withVar = false;
+  const fill = (v, segs) => { for (const i of segs) INPUTS[segKey(i)] = v; save(); sync(); refresh(); };
+  const segsOf = t => WM_TERR[t].core.concat(withVar ? WM_TERR[t].vari : []);
+  const rows = el('div', { class: 'wmfill' });
+  const draw = () => { rows.replaceChildren(...['LAD', 'RCA', 'LCx'].map(t => el('div', { class: 'wmf' },
+    el('span', { class: 'wmn' }, el('i', { style: `background:var(--t-${t})` }), t, el('small', null, ' ' + segsOf(t).join(', '))),
+    el('span', { class: 'wmb' }, [[2, 'Hypokinetic'], [3, 'Akinetic'], [4, 'Dyskinetic'], [1, 'Normal']].map(([v, n]) => el('button', { class: 'btn small s' + v, type: 'button', title: 'Score segments ' + segsOf(t).join(', ') + ' as ' + n.toLowerCase(), onclick: () => fill(v, segsOf(t)) }, n === 'Hypokinetic' ? 'Hypo' : n === 'Dyskinetic' ? 'Dyskin.' : n)))))); };
+  const vc = el('input', { type: 'checkbox', id: 'wmvar' }); vc.addEventListener('change', () => { withVar = vc.checked; draw(); }); draw();
+  const rest = el('button', { class: 'btn small', type: 'button', onclick: () => { const segs = []; for (let i = 1; i <= 16; i++) if (wmScore(i) == null) segs.push(i); if (segs.length) fill(1, segs); } }, 'Mark the remaining segments normal');
+  return el('section', { class: 'card wm-fillcard' }, el('h2', null, 'Fill by territory'),
+    el('p', { class: 'p-ref' }, 'Scores every segment of a territory at once; then click single segments to adjust.'), rows,
+    el('div', { class: 'wmfoot' }, el('label', { for: 'wmvar' }, vc, ' Include variable-supply segments'), rest));
+}
+
+
+/* ---------- defaults for image quality and protocol; valves marked normal from the overview (added in this web version) ---------- */
+const NEW_CASE_DEFAULTS = { 'Report!B22': 'Excellent', 'Report!B19': 'No', 'Report!B21': 'Not performed' };
+/* diagnostic adequacy follows image quality */
+FORMULAS['Report!Z25'] = () => { const q = String(g('Report!B22') || ''); return /Excellent/.test(q) ? 'Excellent' : /Good|Fair/.test(q) ? 'Good' : /Poor|Non-diagnostic/.test(q) ? 'Inadequate' : String(g('Report!B25') || ''); };
+const VN = [
+  { k: 'Qual!VN_AV', name: 'Aortic valve', base: ['Echo!B96', 'Echo!B110'], d: ['Echo!D96', 'Echo!D110'], rep: 'Report!B68', chip: ['No aortic stenosis', 'No aortic regurgitation'] },
+  { k: 'Qual!VN_MV', name: 'Mitral valve', base: ['Echo!B125', 'Echo!B144'], d: ['Echo!D125', 'Echo!D144'], rep: 'Report!B69', chip: ['No mitral stenosis', 'No mitral regurgitation'] },
+  { k: 'Qual!VN_TV', name: 'Tricuspid valve', base: ['Echo!B157', 'Echo!D164'], d: ['Echo!D157'], rep: 'Report!B70', chip: ['No tricuspid regurgitation'] },
+  { k: 'Qual!VN_PV', name: 'Pulmonic valve', base: ['Echo!B167', 'Echo!B177'], d: [], rep: 'Report!B71', chip: [] }];
+Object.assign(DEFAULTS, Object.fromEntries(VN.map(v => [v.k, null])));
+/* everything entered for a valve on the Echo page (measurements and qualitative items) cancels the normal default */
+const VN_ROWS = { 'Qual!VN_AV': [63, 111, /^Aortic/], 'Qual!VN_MV': [112, 145, /^Mitral/], 'Qual!VN_TV': [146, 165, /^Tricuspid/], 'Qual!VN_PV': [166, 178, /^Pulmonic/] };
+const vnInputs = v => v._in || (v._in = MODEL.echo.filter(r => r.in && r.r >= VN_ROWS[v.k][0] && r.r <= VN_ROWS[v.k][1] && !/LVOT|stroke volume/i.test(r.a)).map(r => 'Echo!B' + r.r)
+  .concat(QUAL.filter(q => VN_ROWS[v.k][2].test(q.valve)).flatMap(q => q.items.map(it => 'Qual!' + it.id))));
+const vnBlank = v => v.base.every(k => { const x = g(k); return x == null || x === '' || isErr(x); }) && vnInputs(v).every(k => INPUTS[k] == null || INPUTS[k] === '');
+const vnOn = v => INPUTS[v.k] === 'Normal' && vnBlank(v);
+for (const v of VN){
+  const f0 = FORMULAS[v.rep]; FORMULAS[v.rep] = () => { if (vnOn(v)) return 'Structurally and functionally normal; no stenosis or regurgitation.'; const r = f0();
+    return INPUTS[v.k] === 'Normal' && typeof r === 'string' ? r.replace('→ not assessed', '→ no stenosis').replace('Stenosis: none assessed', 'Stenosis: none').replace('Regurgitation: not assessed', 'Regurgitation: none') : r; };
+  v.d.forEach((k, i) => { const f1 = FORMULAS[k]; FORMULAS[k] = () => { const r = f1(); return (r === '' || r == null) && INPUTS[v.k] === 'Normal' ? v.chip[i] + (vnOn(v) ? ' (normal valve)' : '') : r; }; });
+}
+{ const f0 = FORMULAS['Report!D39']; FORMULAS['Report!D39'] = () => { const r = f0(), on = VN.filter(vnOn); if (!on.length) return r;
+    if (on.length === 4) return 'Valves: structurally and functionally normal.';
+    const n = on.map(v => v.name.replace(' valve', '').toLowerCase()), list = (n.length === 1 ? n[0] + ' valve' : n.slice(0, -1).join(', ') + ' and ' + n[n.length - 1] + ' valves'), cap = list.charAt(0).toUpperCase() + list.slice(1);
+    if (r === 'No significant valve disease.') return 'No significant valve disease; ' + list + ' structurally and functionally normal.';
+    if (r === 'Valves: not assessed.') return cap + ' structurally and functionally normal.';
+    return r + '\n' + cap + ' structurally and functionally normal.'; }; }
+function valveNormalBox(){
+  const btn = el('button', { class: 'btn small', type: 'button' }), note = el('span', { class: 'p-ref' });
+  btn.addEventListener('click', () => {
+    const marked = VN.filter(v => INPUTS[v.k] === 'Normal');
+    if (marked.length){ for (const v of marked) INPUTS[v.k] = null; }
+    else { for (const v of VN) if (vnBlank(v)) INPUTS[v.k] = 'Normal'; }
+    save(); refresh();
+  });
+  bind(() => {
+    const marked = VN.filter(v => INPUTS[v.k] === 'Normal'), blank = VN.filter(vnBlank);
+    btn.textContent = marked.length ? 'Undo normal valves' : 'Mark unassessed valves normal';
+    btn.disabled = !marked.length && !blank.length;
+    note.textContent = marked.length ? marked.filter(vnOn).map(v => v.name.replace(' valve', '')).join(', ') + ' marked structurally and functionally normal. Anything measured on the Echo page takes precedence.'
+      : blank.length ? 'Not assessed: ' + blank.map(v => v.name.replace(' valve', '').toLowerCase()).join(', ') + '. One click reports them as structurally and functionally normal.' : 'Every valve has an assessment.';
+  });
+  return el('div', { class: 'vnbox' }, btn, note);
+}
+function iqSummaryRow(){
+  const t = el('span');
+  bind(() => {
+    const q = String(g('Report!B22') || 'Not stated'), why = String(g('Report!B23') || ''), win = String(g('Report!B24') || ''), u = g('Report!B19') === 'Yes', ag = String(g('Report!C20') || ''), sal = String(g('Report!B21') || 'not stated');
+    t.textContent = q + ' image quality' + (why ? ' (' + why.toLowerCase() + ')' : '') + (win ? '; windows not obtained: ' + win.toLowerCase() : '') + ' · ' + (u ? 'enhancing agent used' + (ag ? ': ' + ag : '') : 'no enhancing agent') + ' · agitated saline: ' + sal.toLowerCase() + '.';
+  });
+  return el('div', { class: 'frow' }, el('label', null, 'Image quality and protocol'), el('div', null, el('p', { style: 'margin:6px 0 2px; font-size:14.5px' }, t),
+    el('p', { class: 'p-ref' }, 'A new case starts as excellent quality, no enhancing agent and no saline. ', el('a', { href: '#echo-q-iq' }, 'Change it with the patient details on the Echo page'), '.')));
 }
 
 
@@ -3811,6 +4004,14 @@ page('overview', 'Study overview', 'start', root => {
   const dl = el('dl', { class: 'glance chips' });
   for (const [t, kd, kv, u] of items){
     const dd = el('dd', null, chip(kd));
+    if (t === 'LVEF'){
+      const sel = el('select', { class: 'fld efr', 'aria-label': 'LVEF range for the report' }, EF_BINS.map(b => el('option', { value: b }, efText(b)))), tag = el('span', { class: 'p-ref efr-t' });
+      sel.addEventListener('change', () => { INPUTS['Echo!EFRb'] = efAutoBin(); setIn(EFR, sel.value); });
+      const sync = () => { const auto = efAutoBin(), cur = efFellow(); sel.hidden = !cur; sel.value = cur || ''; const ch = efChosen(); tag.textContent = !cur ? '' : ch ? (ch === auto ? 'range confirmed' : 'range chosen (calculated LVEF falls in ' + efText(auto) + ')') : INPUTS[EFR] ? 'LVEF changed: range re-selected from the new value' : 'range pre-selected from the calculated LVEF';
+        const reset = tag.querySelector('a'); };
+      controls.push({ key: EFR, sync }); bind(sync);
+      add(dd, el('span', { class: 'efr-w' }, ' Report as ', sel, ' ', tag));
+    }
     if (kv){ const v = el('span', { class: 'num' }); bind(() => { const f = fmt(kv); v.textContent = f.t ? f.t + u + '  ' : ''; }); dd.prepend(v); }
     add(dl, el('dt', null, t), dd);
   }
@@ -3819,10 +4020,10 @@ page('overview', 'Study overview', 'start', root => {
     const has = k => { const v = g(PV + k); return typeof v === 'string' && v !== '' && v !== 'None'; };
     const short = k => { const ch = el('span', { class: 'chip' }); bind(() => { const t = fmt(PV + k).t, s2 = t.split(' — ')[0]; ch.textContent = s2; ch.className = 'chip ' + (s2 ? tone(t) : ''); ch.hidden = !s2; }); return ch; };
     const dtN = el('dt', null, 'Prosthetic valves'), ddN = el('dd'); add(dl, dtN, ddN);
-    bind(() => { const any = rowsPV.some(r => has(r[1])); dtN.hidden = ddN.hidden = any; });
+    dtN.hidden = ddN.hidden = true;      // shown only per prosthesis, never as 'not assessed'
     for (const [name, kt, ks, kr] of rowsPV){ const ty = el('span', { class: 'num' }), dt = el('dt', null, name), dd = el('dd', null, ty, short(ks), ' ', short(kr));
       bind(() => { const on = has(kt); dt.hidden = dd.hidden = !on; ty.textContent = on ? g(PV + kt) + '  ' : ''; }); add(dl, dt, dd); } }
-  const glance = el('section', { class: 'card' }, el('h2', null, 'Interpretation at a glance'), dl);
+  const glance = el('section', { class: 'card' }, el('h2', null, 'Interpretation at a glance'), dl, valveNormalBox());
   const be = bullseye('score', true);
   const wm = el('section', { class: 'card' }, el('h2', null, 'Wall motion'), be, vtext('p', 'Wall Motion!D29', 'p-ref'));
   const bars = el('div', { class: 'vbars' });
@@ -4082,6 +4283,7 @@ page('wall', 'Wall motion', 'enter', root => {
       el('section', { class: 'heart' }, el('h3', null, 'Wall-motion score'), bullseye('score', true), legendScore, el('p', null, 'Outer ring basal 1–6, middle ring mid 7–12, inner ring apical 13–16, centre apical cap 17.')),
       el('section', { class: 'heart' }, el('h3', null, 'Coronary territories, typical'), bullseye('terr', true), legendTerr, el('p', null, M.terrLegend[3].replace('Checkered', 'Striped'))),
       side),
+    el('div', { class: 'wm-auto' }, wmFillCard(() => syncSegSelects()), wmTerrCard()),
     el('div', { class: 'views' },
       el('section', { class: 'heart wide' }, el('h3', null, 'Parasternal long axis'), plax(), el('p', null, 'The transducer is at the top. Upper wall: anteroseptum, with basal 2 next to the aortic root and mid 8 towards the apex. Lower wall: inferolateral, with basal 5 next to the mitral annulus and mid 11. The apex is usually off screen to the left.')),
       el('section', { class: 'heart' }, el('h3', null, 'Rules of thumb'), el('ul', { class: 'rules' }, M.rules.map(r => el('li', null, r)))),
@@ -4547,6 +4749,7 @@ page('report', 'Report', 'report', root => {
     add(form, el('h3', null, grp.title.replace(/\s*\(enter per study\)/, '')));
     for (const r of grp.rows){
       if (r.node){ add(form, r.node()); continue; }
+      if (r.hide) continue;
       if (r.note){ add(form, el('p', { class: 'note' }, r.note.replace("enter on the Echo sheet (Aorta section, 'Prior maximal root/ascending diameter')", 'enter it with the Echo measurements, in the Aorta section'))); continue; }
       const f = field(r.k || K(S, 'B' + r.r), r.in, { multiline: !r.k && [11, 12, 30, 31].includes(r.r) });
       add(form, el('div', { class: 'frow' + (/^\s/.test(r.a) ? ' sub' : '') }, el('label', { for: f.id }, r.a.trim()), el('div', null, f.node, f.msg)));
@@ -4559,8 +4762,9 @@ page('report', 'Report', 'report', root => {
   const checks = el('ul', { class: 'checks' });
   for (const r of R.checks){ const li = el('li'); bind(() => { const t = fmt(K(S, 'B' + r)).t; li.textContent = t; li.className = t.startsWith('⚠') ? 'bad' : t.startsWith('✔') ? 'ok' : ''; li.hidden = !t; }); add(checks, li); }
   const prev = el('dl', { class: 'preview' });
-  for (const p of R.prev){ if (!p.a) continue; add(prev, el('dt', null, p.a), vtext('dd', K(S, 'B' + p.r))); }
-  const fullText = () => { const t = addDiaLine(String(g('Report!B81') || ''), true), ql = [qualReport(), periReport(), cardReport(), rvStrainReport(), embolismReport(), congenitalReport()].filter(Boolean).join('\n\n'); return ql ? t + (t ? '\n\n' : '') + ql : t; };
+  for (const p of R.prev){ if (!p.a) continue; const dt = el('dt', null, p.a), dd = vtext('dd', K(S, 'B' + p.r)); add(prev, dt, dd);
+    if (p.r === 72) bind(() => { dt.hidden = dd.hidden = String(g('Report!B72')) === 'None.'; }); }
+  const fullText = () => { const t = addDiaLine(withEFRange(String(g('Report!B81') || '')).replace(/\n*Prosthetic valves: None\.\n*/, '\n\n'), true), ql = [qualReport(), periReport(), cardReport(), rvStrainReport(), embolismReport(), congenitalReport()].filter(Boolean).join('\n\n'); return ql ? t + (t ? '\n\n' : '') + ql : t; };
   const full = el('pre', { class: 'full', tabindex: 0 }); bind(() => { full.textContent = fullText(); });
   add(root, el('p', { class: 'lead' }, 'Structured to the ASE 2025 reporting standard. Fill in the details once per study; the measurements come from the other pages.'),
     el('div', { class: 'rep' }, form, el('div', { style: 'display:grid;gap:18px' }, sumCard,
@@ -4786,6 +4990,7 @@ function exportColumns(){
   rows('Diastology 2025', 'Diastology', M.dia); rows('Prosthetic Valves', 'Prosthesis', M.pv);
   M.report.groups.forEach(gr => gr.rows.forEach(r => { if (r.in) cols.push({ k: r.k || K('Report', 'B' + r.r), h: 'Report: ' + r.a.trim() }); }));
   cols.push({ k: 'Diastology 2025!G27', h: 'Diastology: PASP entered (mmHg)' });
+  cols.push({ k: EFR, h: 'Fellow LVEF range (%)' }, { k: 'Att!code', h: 'Attending: code' }, { k: 'Att!lvef', h: 'Attending: LVEF (%)' }); for (const it of ATT) if (!it.input) cols.push({ k: attKey(it), h: 'Attending: ' + it.label }); cols.push({ k: 'Att!crit_which', h: 'Attending: critical finding' });
   return cols;
 }
 const EXPORT_OUT = [['BSA (m²)', 'Echo!B20'], ['LVEF used (%)', 'Echo!B43'], ['LVEF interpretation', 'Echo!D43'], ['LV mass index (g/m²)', 'Echo!B33'], ['Relative wall thickness', 'Echo!B31'], ['LV geometry', 'Echo!B34'], ['Wall-motion score index', 'Wall Motion!D27'],
@@ -4959,6 +5164,231 @@ function openPicker(){
 }
 
 /* ---------- shell ---------- */
+/* ---------- compare with the attending's read: concordance per study, kappa across studies (added in this web version) ---------- */
+const EF_BINS = ['<10', '10–15', '15–20', '20–25', '25–30', '30–35', '35–40', '40–45', '45–50', '50–55', '55–60', '60–65', '65–70', '>70'];
+const efBin = n => n < 10 ? 0 : n >= 70 ? 13 : Math.floor(n / 5) - 1;
+const efCat = (n, sex) => n > (sex === 'F' ? 74 : 72) ? 'Hyperdynamic' : n >= (sex === 'F' ? 54 : 52) ? 'Normal' : n >= 41 ? 'Mildly reduced' : n >= 30 ? 'Moderately reduced' : 'Severely reduced';
+const EF_CATS = ['Severely reduced', 'Moderately reduced', 'Mildly reduced', 'Normal', 'Hyperdynamic'];
+/* attending LVEF as typed: "55", "55-60", "55–60%", "<20", ">70" */
+function parseEF(t){
+  t = String(t || '').replace(/%/g, '').trim(); if (!t) return null;
+  let m = /^([<>≤≥])\s*(\d+(?:\.\d+)?)$/.exec(t); if (m){ const v = +m[2]; return m[1] === '<' || m[1] === '≤' ? { n: Math.max(0, v - 2.5) } : { n: v + 2.5 }; }
+  m = /^(\d+(?:\.\d+)?)\s*(?:-|–|to)\s*(\d+(?:\.\d+)?)$/.exec(t); if (m){ const a = +m[1], b = +m[2]; return { n: (a + b) / 2, lo: Math.min(a, b) }; }
+  m = /^(\d+(?:\.\d+)?)$/.exec(t); if (m) return { n: +m[1] };
+  return null;
+}
+const EFR = 'Echo!EFR';
+Object.assign(DEFAULTS, { [EFR]: null, 'Echo!EFRb': null });
+const efAutoBin = () => { const n = g('Echo!B43'); return typeof n === 'number' ? EF_BINS[efBin(n)] : ''; };
+/* a chosen range holds only while the calculated LVEF stays in the interval it was chosen against */
+const efChosen = () => INPUTS[EFR] && EF_BINS.includes(INPUTS[EFR]) && INPUTS['Echo!EFRb'] === efAutoBin() ? INPUTS[EFR] : '';
+const efFellow = () => efChosen() || efAutoBin();
+/* a reported interval is categorised by its midpoint: 40–45% counts as mildly reduced, 30–35% as moderately reduced */
+const efBinMid = b => { const i = EF_BINS.indexOf(b); return i < 0 ? null : i === 0 ? 7.5 : i === 13 ? 75 : (i + 1) * 5 + 2.5; };
+const efText = b => b ? (b.startsWith('<') || b.startsWith('>') ? b : b.replace('–', '–')) + '%' : '';
+/* the summary statement reports the chosen range instead of the single number */
+const withEFRange = t => { const b = efFellow(); if (!b) return t; const c = efCat(efBinMid(b), INPUTS['Echo!B12']).toLowerCase();
+  return String(t).replace(/(hyperdynamic(?: \(>\d+%\))?|normal|mildly reduced|moderately reduced|severely reduced)( (?:LV )?systolic function \()LVEF \d+(?:\.\d+)?%/i, (m, w, mid) => (w[0] === w[0].toUpperCase() ? c[0].toUpperCase() + c.slice(1) : c) + mid + 'LVEF ' + efText(b)).replace(/\(LVEF \d+(?:\.\d+)?%/, '(LVEF ' + efText(b)); };
+const efOfAtt = o => { const p = parseEF(o['Att!lvef']); if (!p) return null; return { n: p.n, bin: efBin(p.lo != null ? p.lo : p.n) }; };
+const REG6 = ['None/trace', 'Mild', 'Mild–moderate', 'Moderate', 'Moderate–severe', 'Severe'];
+const TR8 = REG6.concat(['Massive', 'Torrential']);
+const STEN4 = ['None', 'Mild', 'Moderate', 'Severe'];
+const regGrade = t => { t = String(t || '').toLowerCase(); if (!t) return '';
+  if (/torrential/.test(t)) return 'Torrential'; if (/massive/.test(t)) return 'Massive';
+  if (/moderate(-| to |–)severe|possibly severe/.test(t)) return 'Moderate–severe';
+  if (/mild(-| to |–)moderate/.test(t)) return 'Mild–moderate';
+  if (/severe/.test(t) && !/at least moderate/.test(t)) return 'Severe';
+  if (/moderate/.test(t)) return 'Moderate'; if (/mild/.test(t)) return 'Mild';
+  if (/^no |none|trace|physiolog/.test(t)) return 'None/trace'; return ''; };
+const stenGrade = t => { t = String(t || '').toLowerCase(); if (!t) return '';
+  if (/severe/.test(t) && !/no significant/.test(t)) return 'Severe'; if (/moderate/.test(t)) return 'Moderate'; if (/mild/.test(t)) return 'Mild';
+  if (/^no |none|no significant|sclerosis/.test(t)) return 'None'; return ''; };
+const WM_CATS = ['Normal', 'Abnormal: LAD', 'Abnormal: RCA', 'Abnormal: LCx', 'Abnormal: multivessel', 'Abnormal: diffuse or non-coronary'];
+const DIA_ORD = ['Normal', 'Grade 1', 'Grade 2', 'Grade 3'], DIA_CATS = DIA_ORD.concat(['Elevated LAP, no grade', 'Indeterminate']);
+const CM_CATS = ['None', 'Dilated', 'Hypertrophic', 'Infiltrative (consider amyloid)', 'Non-dilated LV', 'Restrictive', 'Takotsubo', 'Arrhythmogenic RV', 'Other'];
+const CRIT_CATS = ['Tamponade', 'Aortic dissection', 'Thrombus or mass', 'Vegetation', 'New severe LV dysfunction', 'New severe valve disease', 'Prosthetic valve dysfunction', 'Large effusion', 'RV strain with suspected PE', 'LVOT obstruction', 'Other'];
+const s0 = k => { const v = g(k); return isErr(v) || v == null ? '' : String(v); };
+/* the items: your side comes from the workbook; ord = ordered scale (weighted kappa) */
+const ATT = [
+  { id: 'lvef_cat', grp: 'm', label: 'LVEF category', scale: EF_CATS, ord: true, input: 'lvef', mine: () => { const b = efFellow(); return b ? efCat(efBinMid(b), INPUTS['Echo!B12']) : ''; },
+    att: o => { const e = efOfAtt(o); return e ? efCat(efBinMid(EF_BINS[e.bin]), o['Echo!B12']) : ''; } },
+  { id: 'lvef_bin', grp: 'm', label: 'LVEF, 5% interval', scale: EF_BINS, ord: true, input: 'lvef', mine: () => efFellow(),
+    att: o => { const e = efOfAtt(o); return e ? EF_BINS[e.bin] : ''; } },
+  { id: 'wm', grp: 'm', label: 'Regional wall motion', scale: WM_CATS, ord: false, two: true, mine: () => { const n = g('Wall Motion!D22'); if (!(n > 0)) return ''; if (!(g('Wall Motion!D23') > 0)) return 'Normal';
+      const a = wmAnalysis(); let tk = null; try { tk = takoResult(); } catch (e) {} if (tk && tk.pattern && !(a.fit[0] && a.fit[0].length === 1)) return 'Abnormal: diffuse or non-coronary';
+      const f = a.fit[0] || []; return f.length === 1 ? 'Abnormal: ' + f[0] : f.length > 1 ? 'Abnormal: multivessel' : 'Abnormal: diffuse or non-coronary'; } },
+  { id: 'rvf', grp: 'm', label: 'RV systolic function', scale: ['Normal', 'Reduced'], ord: true, mine: () => { const t = s0('Echo!B220'); return /reduced/i.test(t) && !/borderline/i.test(t) ? 'Reduced' : /normal|borderline/i.test(t) ? 'Normal' : ''; } },
+  { id: 'as', grp: 'm', label: 'Aortic stenosis', scale: STEN4, ord: true, mine: () => stenGrade(s0('Echo!D96')) || 'None', auto: () => !stenGrade(s0('Echo!D96')) },
+  { id: 'ar', grp: 'm', label: 'Aortic regurgitation', scale: REG6, ord: true, mine: () => regGrade(s0('Echo!D110')) || 'None/trace', auto: () => !regGrade(s0('Echo!D110')) },
+  { id: 'mr', grp: 'm', label: 'Mitral regurgitation', scale: REG6, ord: true, mine: () => regGrade(s0('Echo!D144')) || 'None/trace', auto: () => !regGrade(s0('Echo!D144')) },
+  { id: 'tr', grp: 'm', label: 'Tricuspid regurgitation', scale: TR8, ord: true, mine: () => regGrade(s0('Echo!D157')) || 'None/trace', auto: () => !regGrade(s0('Echo!D157')) },
+  { id: 'ph', grp: 'm', label: 'Pulmonary hypertension probability', scale: ['Low', 'Intermediate', 'High'], ord: true, mine: () => { const t = s0('Echo!B238'); return /^High/.test(t) ? 'High' : /^Intermediate/.test(t) ? 'Intermediate' : /^Low/.test(t) ? 'Low' : ''; } },
+  { id: 'peff', grp: 'm', label: 'Pericardial effusion', scale: ['None', 'Small', 'Moderate', 'Large'], ord: true, mine: () => { const t = s0('Echo!D258'); return /^No/.test(t) ? 'None' : /^Small/.test(t) ? 'Small' : /^Moderate/.test(t) ? 'Moderate' : /^Large/.test(t) ? 'Large' : ''; } },
+  /* optional */
+  { id: 'lvsize', grp: 'm', opt: true, label: 'LV size', scale: ['Normal', 'Mildly dilated', 'Moderately dilated', 'Severely dilated'], ord: true, mine: () => { const t = s0('Echo!D24'); return /Below|Normal/.test(t) ? 'Normal' : t; } },
+  { id: 'lvgeo', grp: 'm', opt: true, label: 'LV geometry', scale: ['Normal geometry', 'Concentric remodeling', 'Concentric hypertrophy', 'Eccentric hypertrophy'], ord: false, mine: () => s0('Echo!B34') },
+  { id: 'lasize', grp: 'm', opt: true, label: 'LA size', scale: ['Normal', 'Mildly dilated', 'Moderately dilated', 'Severely dilated'], ord: true, mine: () => s0('Echo!D193').replace(' LA', '') },
+  { id: 'rvsize', grp: 'm', opt: true, label: 'RV size', scale: ['Normal', 'Dilated'], ord: true, mine: () => { const t = s0('Echo!D210'); return /Dilated/.test(t) ? 'Dilated' : /Normal/.test(t) ? 'Normal' : ''; } },
+  { id: 'rap', grp: 'm', opt: true, label: 'RA pressure', scale: ['3 mmHg', '8 mmHg', '15 mmHg'], ord: true, mine: () => { const n = g('Echo!B225'); return typeof n === 'number' ? Math.round(n) + ' mmHg' : ''; } },
+  { id: 'ms', grp: 'm', opt: true, label: 'Mitral stenosis', scale: STEN4, ord: true, mine: () => stenGrade(s0('Echo!D125')) || 'None', auto: () => !stenGrade(s0('Echo!D125')) },
+  { id: 'aorta', grp: 'm', opt: true, label: 'Aorta', scale: ['Normal', 'Dilated'], ord: true, mine: () => { const t = [s0('Echo!D242'), s0('Echo!D244')].join(' '); return /dilat|aneurysm/i.test(t) ? 'Dilated' : /normal/i.test(t) ? 'Normal' : ''; } },
+  /* diastology */
+  { id: 'dia', grp: 'd', label: 'Diastolic function', scale: DIA_CATS, ord: true, ordScale: DIA_ORD, mine: () => { const t = s0(String(g('Diastology 2025!B11')) === '2016' ? 'Diastology 2025!G107' : 'Diastology 2025!G108'); return t === 'Elevated LAP' ? 'Elevated LAP, no grade' : DIA_CATS.includes(t) ? t : ''; } },
+  /* actionable findings */
+  { id: 'crit', grp: 'a', label: 'Critical finding', scale: ['No', 'Yes'], ord: false, which: true, mine: () => s0('Report!D26').trim() ? 'Yes' : 'No' },
+  { id: 'cm', grp: 'a', label: 'Suggested cardiomyopathy', scale: CM_CATS, ord: false, two: true, mine: () => { let F = []; try { F = cmpFlags().F; } catch (e) {} const t = F.length ? F[0].t : '';
+      return !t || /Borderline/.test(t) ? 'None' : /Dilated/.test(t) ? 'Dilated' : /Hypertrophic/.test(t) ? 'Hypertrophic' : /amyloid|Infiltrative/.test(t) ? 'Infiltrative (consider amyloid)' : /Non-dilated/.test(t) ? 'Non-dilated LV' : /Restrictive/.test(t) ? 'Restrictive' : /Takotsubo/.test(t) ? 'Takotsubo' : /RV/.test(t) ? 'Arrhythmogenic RV' : 'Other'; } }];
+const ATT_GROUPS = [['m', 'Measurements and grades'], ['d', 'Diastology'], ['a', 'Actionable findings']];
+const attKey = it => 'Att!' + (it.input || it.id);
+Object.assign(DEFAULTS, { 'Att!code': null, 'Att!lvef': null, 'Att!crit_which': null }, Object.fromEntries(ATT.filter(i => !i.input).map(i => [attKey(i), null])));
+const ATT_OPT = 'echo-workbook-att-optional';
+const attOptOn = () => { try { return localStorage.getItem(ATT_OPT) === '1'; } catch (e) { return false; } };
+const attItems = () => ATT.filter(i => !i.opt || attOptOn());
+const attVal = (it, o) => it.att ? it.att(o) : String(o[attKey(it)] || '');
+/* compare one item: 'agree' | 'near' (one step on an ordered scale) | 'differ' | '' (not comparable) */
+function attCmp(it, m, a){
+  if (!m || !a || a === 'Not reported') return '';
+  if (m === a) return 'agree';
+  /* "two-level" items: normal/none vs abnormal first; a different territory or type counts as near */
+  if (it.two){ const n0 = it.id === 'wm' ? 'Normal' : 'None'; return (m === n0) === (a === n0) ? 'near' : 'differ'; }
+  if (it.ord){ const sc = it.ordScale || it.scale, i = sc.indexOf(m), j = sc.indexOf(a); if (i >= 0 && j >= 0 && Math.abs(i - j) === 1) return 'near'; }
+  return 'differ';
+}
+function attStudy(o){
+  const rows = attItems().map(it => { const m = it.mine(), a = attVal(it, o); return { it, m, a, c: attCmp(it, m, a) }; });
+  const done = rows.filter(r => r.c), agree = done.filter(r => r.c === 'agree').length, near = done.filter(r => r.c === 'near').length;
+  return { rows, n: done.length, agree, near };
+}
+/* ---------- statistics ---------- */
+function kappa(pairs, cats, weighted){
+  const k = cats.length, n = pairs.length; if (n < 2 || k < 2) return null;
+  const idx = new Map(cats.map((c, i) => [c, i])), O = Array.from({ length: k }, () => new Array(k).fill(0));
+  for (const [a, b] of pairs){ const i = idx.get(a), j = idx.get(b); if (i == null || j == null) continue; O[i][j]++; }
+  const r = O.map(row => row.reduce((s, v) => s + v, 0)), c = cats.map((_, j) => O.reduce((s, row) => s + row[j], 0));
+  const w = (i, j) => weighted ? 1 - Math.abs(i - j) / (k - 1) : (i === j ? 1 : 0);
+  let po = 0, pe = 0; for (let i = 0; i < k; i++) for (let j = 0; j < k; j++){ po += w(i, j) * O[i][j] / n; pe += w(i, j) * r[i] * c[j] / (n * n); }
+  return pe >= 1 ? (po >= 1 ? 1 : null) : (po - pe) / (1 - pe);
+}
+function kappaCI(pairs, cats, weighted){
+  const est = kappa(pairs, cats, weighted); if (est == null) return null;
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647, B = 400, ks = [];
+  for (let b = 0; b < B; b++){ const s = pairs.map(() => pairs[Math.floor(rnd() * pairs.length)]); const v = kappa(s, cats, weighted); if (v != null) ks.push(v); }
+  ks.sort((x, y) => x - y); const q = p => ks.length ? ks[Math.min(ks.length - 1, Math.floor(p * ks.length))] : null;
+  return { k: est, lo: q(0.025), hi: q(0.975) };
+}
+const kLabel = k => k == null ? '' : k < 0 ? 'Poor' : k <= 0.2 ? 'Slight' : k <= 0.4 ? 'Fair' : k <= 0.6 ? 'Moderate' : k <= 0.8 ? 'Substantial' : 'Almost perfect';
+function iccA1(x, y){ const n = x.length; if (n < 3) return null; const all = x.concat(y), gm = all.reduce((s, v) => s + v, 0) / (2 * n);
+  const rm = x.map((v, i) => (v + y[i]) / 2), cm = [x.reduce((s, v) => s + v, 0) / n, y.reduce((s, v) => s + v, 0) / n];
+  const MSR = 2 * rm.reduce((s, v) => s + (v - gm) ** 2, 0) / (n - 1), MSC = n * cm.reduce((s, v) => s + (v - gm) ** 2, 0);
+  let SSE = 0; for (let i = 0; i < n; i++){ SSE += (x[i] - rm[i] - cm[0] + gm) ** 2 + (y[i] - rm[i] - cm[1] + gm) ** 2; } const MSE = SSE / (n - 1);
+  return (MSR - MSE) / (MSR + MSE + 2 * (MSC - MSE) / n); }
+/* one row per saved study: your side and the attending's side for every item */
+const ATTROWS = new Map();
+function attRecord(rec){
+  const id = rec.id + '|' + rec.savedAt; if (ATTROWS.has(id)) return ATTROWS.get(id);
+  const ins = recordInputs(rec); let r = null;
+  if (ATT.some(it => attVal(it, ins)) ){
+    r = withInputs(ins, () => ({ code: String(ins['Att!code'] || ''), when: Date.parse(rec.savedAt), items: Object.fromEntries(ATT.map(it => [it.id, [it.mine(), attVal(it, ins)]])),
+      ef: [g('Echo!B43'), (efOfAtt(ins) || {}).n] }));
+  }
+  ATTROWS.set(id, r); return r;
+}
+function attAgreement(recs){
+  return attItems().map(it => {
+    const P = recs.map(r => r.items[it.id]).filter(([m, a]) => m && a && a !== 'Not reported' && it.scale.includes(m) && it.scale.includes(a));
+    const n = P.length, ex = P.filter(([m, a]) => m === a).length, nr = P.filter(([m, a]) => attCmp(it, m, a) !== 'differ').length;
+    let kk = null, how = '';
+    if (it.two){ const n0 = it.id === 'wm' ? 'Normal' : 'None'; kk = kappaCI(P.map(([m, a]) => [m === n0 ? n0 : 'Abnormal', a === n0 ? n0 : 'Abnormal']), [n0, 'Abnormal'], false); how = 'κ, ' + (it.id === 'wm' ? 'normal vs abnormal' : 'none vs any'); }
+    else if (it.ord && it.ordScale){ const Q = P.filter(([m, a]) => it.ordScale.includes(m) && it.ordScale.includes(a)); kk = kappaCI(Q, it.ordScale, true); how = 'weighted κ, graded studies (' + Q.length + ')'; }
+    else if (it.ord && it.scale.length > 2){ kk = kappaCI(P, it.scale, true); how = 'weighted κ'; }
+    else { kk = kappaCI(P, it.scale, false); how = 'κ'; }
+    /* kappa is undefined when either reader used only one category */
+    const used = (side) => new Set(P.map(p => it.two ? (p[side] === (it.id === 'wm' ? 'Normal' : 'None') ? 0 : 1) : p[side])).size;
+    if (n && (used(0) < 2 || used(1) < 2)){ kk = null; how = 'κ not defined: one reader used a single category'; }
+    return { it, n, ex, nr, kk, how };
+  });
+}
+/* ---------- the page ---------- */
+function attSelect(key, opts, blank){
+  const f = field(key, { t: 'list', o: opts, bl: 1 }, { blank: blank || '—' }); return f.node;
+}
+page('compare', 'Compare with attending', 'report', root => {
+  const code = field('Att!code', { t: 'text' }); code.node.setAttribute('placeholder', 'Initials or code'); code.node.style.maxWidth = '10em';
+  const optBox = el('input', { type: 'checkbox', id: 'attopt' }); optBox.checked = attOptOn();
+  const head = el('div', { class: 'attsum' }), body = el('div');
+  const draw = () => {
+    body.replaceChildren();
+    for (const [gid, gt] of ATT_GROUPS){
+      const items = attItems().filter(i => i.grp === gid); if (!items.length) continue;
+      const tb = el('tbody');
+      for (const it of items){
+        const mine = el('td', { class: 'attm' }), chipC = el('span', { class: 'chip' }), attCell = el('td');
+        if (it.input === 'lvef'){
+          if (it.id === 'lvef_cat'){ const f = field('Att!lvef', { t: 'text' }); f.node.setAttribute('placeholder', 'e.g. 55–60 or 45'); f.node.style.maxWidth = '11em'; add(attCell, f.node, el('span', { class: 'p-ref', style: 'margin-left:8px' }, '% · typed as in the report')); }
+          else { const sp = el('span', { class: 'p-ref' }); bind(() => { const e = efOfAtt(INPUTS); sp.textContent = e ? EF_BINS[e.bin] + ' (from the LVEF typed above)' : 'From the LVEF typed above'; }); add(attCell, sp); }
+        } else {
+          add(attCell, attSelect(attKey(it), it.scale.concat(['Not reported'])));
+          if (it.which){ const w = attSelect('Att!crit_which', CRIT_CATS, 'Which finding'); const wrap = el('span', { style: 'margin-left:8px' }, w); bind(() => { wrap.hidden = INPUTS[attKey(it)] !== 'Yes'; }); add(attCell, wrap); }
+        }
+        bind(() => { const m = it.mine(), a = attVal(it, INPUTS), c = attCmp(it, m, a);
+          mine.textContent = m ? m + (it.auto && it.auto() ? ' (default, not measured)' : it.id === 'lvef_bin' && !efChosen() ? ' (from the calculated LVEF)' : '') : 'Not assessed';
+          if (it.id === 'crit' && m === 'Yes') mine.textContent = 'Yes: ' + s0('Report!D26').split('\n')[0].replace(/^(CRITICAL RESULT|URGENT):\s*/, '').slice(0, 60);
+          chipC.textContent = c === 'agree' ? 'Agree' : c === 'near' ? (it.two ? 'Same call, different type' : 'One step apart') : c === 'differ' ? 'Differ' : '';
+          chipC.className = 'chip ' + (c === 'agree' ? 'ok' : c === 'near' ? 'warn' : c === 'differ' ? 'bad' : ''); chipC.hidden = !c; });
+        add(tb, el('tr', null, el('td', null, el('b', null, it.label)), mine, attCell, el('td', null, chipC)));
+      }
+      add(body, el('section', { class: 'card attg' }, el('h2', null, gt), el('div', { class: 'tbl', style: 'margin:0' }, el('table', { class: 'atttbl' },
+        el('thead', null, el('tr', null, ['Item', 'Your read (from the workbook)', 'Attending', ''].map(t => el('th', null, t)))), tb))));
+    }
+  };
+  optBox.addEventListener('change', () => { try { localStorage.setItem(ATT_OPT, optBox.checked ? '1' : '0'); } catch (e) {} draw(); refresh(); });
+  bind(() => { const s = attStudy(INPUTS); head.replaceChildren(
+    el('div', { class: 'attbig' }, s.n ? el('b', null, s.agree + ' of ' + s.n) : el('b', null, '—'), el('span', null, s.n ? ' items agree' + (s.near ? ' · ' + (s.agree + s.near) + ' within one step' : '') : ' Fill in the attending read below')),
+    s.n ? el('div', { class: 'attmeter' }, el('i', { class: 'a', style: 'width:' + (100 * s.agree / s.n) + '%' }), el('i', { class: 'n', style: 'width:' + (100 * s.near / s.n) + '%' })) : null); });
+  draw();
+  add(root, el('p', { class: 'lead' }, 'Enter the attending’s final read for this study. Your side fills in from the workbook; the agreement across studies is on the Quality dashboard. Enter only categories, never names or record numbers.'),
+    el('div', { class: 'toolbar' }, el('label', null, 'Attending ', code.node), el('label', { for: 'attopt' }, optBox, ' Include optional items (LV and LA size, LV geometry, RV size, RA pressure, mitral stenosis, aorta)'),
+      el('button', { class: 'btn small', type: 'button', style: 'margin-left:auto', onclick: () => { for (const k in DEFAULTS) if (k.startsWith('Att!') && k !== 'Att!code') INPUTS[k] = null; save(); for (const c of controls) c.sync(); refresh(); } }, 'Clear attending read')),
+    el('section', { class: 'card', style: 'margin-bottom:18px' }, head), body,
+    el('p', { class: 'foot' }, 'Agree = same category. One step apart = adjacent grade on an ordered scale (for example mild vs mild–moderate, or 50–55 vs 55–60%). For wall motion and cardiomyopathy, the same call (normal vs abnormal, none vs any) with a different territory or type is shown separately. Trace regurgitation counts as none.'));
+});
+/* the header button: Save study's neighbour */
+function attHeaderBtn(){
+  const a = el('a', { class: 'btn small', href: '#compare', title: 'Compare with the attending’s read' }, 'Attending', el('span', { class: 'attbadge' }));
+  bind(() => { const s = attStudy(INPUTS), b = a.querySelector('.attbadge'); b.textContent = s.n ? ' ' + s.agree + '/' + s.n : ''; });
+  return a;
+}
+/* dashboard section */
+function attDashboard(list){
+  const recs = list.map(attRecord).filter(Boolean);
+  const codes = [...new Set(recs.map(r => r.code).filter(Boolean))].sort();
+  const sel = el('select', { class: 'fld', style: 'width:auto' }, el('option', { value: '' }, 'All attendings'), codes.map(c => el('option', { value: c }, c)));
+  const out = el('div');
+  const draw = () => {
+    const R = recs.filter(r => !sel.value || r.code === sel.value); out.replaceChildren();
+    if (!R.length){ add(out, el('p', { class: 'p-ref' }, 'No saved study has an attending read yet. Open a study, choose Attending at the top, fill in the read and save.')); return; }
+    const A = attAgreement(R), tb = el('tbody');
+    for (const g0 of ATT_GROUPS){ const rows = A.filter(x => x.it.grp === g0[0]); if (!rows.length) continue;
+      add(tb, el('tr', { class: 'attgh' }, el('td', { colspan: 6 }, g0[1])));
+      for (const x of rows) add(tb, el('tr', null, el('td', null, x.it.label), el('td', { class: 'sc' }, String(x.n)),
+        el('td', { class: 'sc' }, x.n ? Math.round(100 * x.ex / x.n) + '%' : '—'), el('td', { class: 'sc' }, x.n && x.it.ord ? Math.round(100 * x.nr / x.n) + '%' : '—'),
+        el('td', { class: 'sc', title: x.how }, x.kk ? x.kk.k.toFixed(2) + (x.kk.lo != null ? ' (' + x.kk.lo.toFixed(2) + ' to ' + x.kk.hi.toFixed(2) + ')' : '') : x.n && /not defined/.test(x.how) ? el('span', { class: 'p-ref' }, 'n/a, one category') : '—'),
+        el('td', null, x.kk ? el('span', { class: 'chip ' + (x.kk.k > 0.6 ? 'ok' : x.kk.k > 0.4 ? 'warn' : 'bad') }, kLabel(x.kk.k)) : null)));
+    }
+    const ef = R.map(r => r.ef).filter(([a, b]) => typeof a === 'number' && typeof b === 'number');
+    let efLine = 'LVEF as numbers: needs both your value and the attending’s in at least 3 studies.';
+    if (ef.length >= 3){ const d = ef.map(([a, b]) => a - b), md = d.reduce((s, v) => s + v, 0) / d.length, sd = Math.sqrt(d.reduce((s, v) => s + (v - md) ** 2, 0) / (d.length - 1)), icc = iccA1(ef.map(x => x[0]), ef.map(x => x[1]));
+      efLine = 'LVEF as numbers (' + ef.length + ' studies): mean difference ' + (md >= 0 ? '+' : '') + md.toFixed(1) + ' points (yours minus attending), limits of agreement ' + (md - 1.96 * sd).toFixed(1) + ' to ' + (md + 1.96 * sd).toFixed(1) + (icc != null ? ' · ICC ' + icc.toFixed(2) : '') + '.'; }
+    const tot = R.map(r => { let n = 0, a = 0; for (const it of attItems()){ const [m, x] = r.items[it.id]; const c = attCmp(it, m, x); if (c){ n++; if (c === 'agree') a++; } } return n ? a / n : null; }).filter(v => v != null);
+    add(out, el('p', { class: 'qbig' }, tot.length ? Math.round(100 * tot.reduce((s, v) => s + v, 0) / tot.length) + '%' : '—', el('span', null, ' mean concordance per study · ' + R.length + ' studies with an attending read')),
+      el('div', { class: 'tbl', style: 'margin:0' }, el('table', { class: 'atttbl' }, el('thead', null, el('tr', null, ['Item', 'Pairs', 'Exact', 'Within one step', 'κ (95% CI)', ''].map(t => el('th', null, t)))), tb)),
+      el('p', { class: 'p-ref', style: 'margin-top:8px' }, efLine),
+      el('p', { class: 'p-ref' }, 'Weighted κ (linear weights) for ordered scales; for diastolic function only on studies both readers graded, with indeterminate counted in Exact. 95% CI by bootstrap. κ with fewer than about 30 pairs is imprecise. Interpretation after Landis and Koch.'));
+  };
+  sel.addEventListener('change', draw); draw();
+  return el('section', { class: 'card qc', style: 'margin-bottom:16px' }, el('h2', null, 'Agreement with attending'), el('div', { class: 'toolbar', style: 'margin:4px 0 8px' }, sel), out);
+}
+
 /* ----- quality dashboard: built from the saved studies (added in this web version) ----- */
 const QD = { rows: new Map(), shown: false, render: null };
 function withInputs(over, fn){
@@ -5084,6 +5514,7 @@ page('quality', 'Quality dashboard', 'report', root => {
       card('Enhancing agent use by image quality', '% of studies in each quality group where an agent was used · tick = 80% target', qdBars(ueaRows, { max: 100, target: 80, note: 'Image quality not recorded yet.' })),
       card('Diastology: 2016 vs 2025', null, el('p', { class: 'qbig' }, both.length ? pct(dis, both.length) + '%' : '—', el('span', null, both.length ? ' disagree · ' + dis + ' of ' + both.length + ' studies graded by both' : ' no studies graded by both yet')),
         mx.n ? el('p', { class: 'p-ref', style: 'margin:0 0 4px' }, 'Rows: ASE/EACVI 2016 · columns: ASE 2025') : null, mx.n ? mx.table : null, mx.n ? el('p', { class: 'p-ref', style: 'margin-top:6px' }, 'Outlined = same result by both · shaded = different (darker = more studies)') : null)));
+    add(body, attDashboard(list.filter(rec => { const r = qdRow(rec); return (isNaN(r.when) || r.when >= since) && (!typ.value || r.type === typ.value); })));
     /* cardiomyopathy */
     const cm = new Map(); for (const r of R) for (const t of new Set(r.cmp)) cm.set(t, (cm.get(t) || 0) + 1);
     const cmRows = [...cm].sort((a, b) => b[1] - a[1]).map(([k, v]) => [k, v, k + ': ' + v + ' studies']);
@@ -5152,7 +5583,7 @@ function buildShell(){
     for (const n of $$('.sec, .calc')){ const t = n.querySelector('button.sec-t'); if (!t || n.classList.contains('closed')) continue; n.classList.add('closed'); t.setAttribute('aria-expanded', 'false'); }       // only blocks that have their own open/close button
     for (const d of $$('details.figfold')) if (d.open) d.open = false;
     saveFolds(); };
-  const startNewCase = () => { const had = filled(INPUTS); loadStudy(blankStudy()); timerStartNew(); collapseEverything();
+  const startNewCase = () => { const had = filled(INPUTS); loadStudy(blankStudy()); Object.assign(INPUTS, NEW_CASE_DEFAULTS); for (const c of controls) c.sync(); timerStartNew(); collapseEverything();
     const q = $('#page-echo input[type=search]'); if (q && q.value){ q.value = ''; q.dispatchEvent(new Event('input', { bubbles: true })); }
     const all = $('#page-echo button[data-v=""]'); if (all) all.click();
     location.hash = 'echo'; setTimeout(() => window.scrollTo(0, 0), 0);
@@ -5169,6 +5600,7 @@ function buildShell(){
     r.dataset.theme = dark ? 'light' : 'dark'; try { localStorage.setItem('echo-workbook-theme', r.dataset.theme); } catch (e) {}
   });
   $('#timerslot').replaceWith(timerWidget(false));
+  $('#save').after(attHeaderBtn());
   $('#menu').addEventListener('click', () => rail.classList.toggle('open'));
   document.addEventListener('click', e => { if (rail.classList.contains('open') && !rail.contains(e.target) && e.target.id !== 'menu') rail.classList.remove('open'); });
   add(document.body, stripeDefs());
