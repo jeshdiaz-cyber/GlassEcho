@@ -5602,7 +5602,7 @@ function parseReport(raw){
       }
     }
     /* RV function */
-    if (/right ventric|\brv\b/.test(lc) && /function|systolic|tapse|contract/.test(lc)){
+    if (/right ventric|\brv\b|biventricular/.test(lc) && /function|systolic|tapse|contract/.test(lc)){
       if (/(reduced|decreased|depressed|impaired|abnormal|hypokinetic|dysfunction)/.test(lc) && !/normal (rv|right)/.test(lc) && !pNeg(c, lc.search(/reduced|decreased|depressed|impaired|abnormal|hypokinetic|dysfunction/))) set('Att!rvf', 'Reduced', 'reduced RV systolic function');
       else if (/normal/.test(lc)) set('Att!rvf', 'Normal', 'normal RV systolic function');
     }
@@ -5894,8 +5894,8 @@ function parseMeasurements(raw){
   { const m = /\b(?:bp|blood pressure)\b[^\d\n]{0,12}(\d{2,3})\s*\/\s*(\d{2,3})/.exec(low); if (m){ out['Echo!B17'] = +m[1]; out['Echo!B18'] = +m[2]; src['Echo!B17'] = 'BP ' + m[1] + '/' + m[2]; } }
   { const m = /\b(?:sex|gender)\b\s*[:=]?\s*(male|female|m|f)\b/.exec(low); if (m) out['Echo!B12'] = m[1][0] === 'f' ? 'F' : 'M'; }
   { const m = /\bivc\b[^\n]{0,60}?(?:collaps\w*)[^\n]{0,20}?([<>])\s*50\s*%|([<>])\s*50\s*%\s*(?:insp\w*\s*)?collaps/.exec(low); if (m) out['Echo!B224'] = (m[1] || m[2]) === '>' ? 'Y' : 'N';
-    else if (/\bivc\b[^\n]{0,60}(?:collapses? normally|normal (?:inspiratory )?collapse|collapses? (?:more than|greater than) 50)/.test(low)) out['Echo!B224'] = 'Y';
-    else if (/\bivc\b[^\n]{0,60}(?:does not collapse|poor (?:inspiratory )?collapse|minimal collapse|plethoric|collapses? less than 50)/.test(low)) out['Echo!B224'] = 'N'; }
+    else if (/\bivc\b[^\n]{0,80}(?:collapses? normally|normal (?:inspiratory )?collapse|collapses? (?:more than|greater than) 50|(?:more than|greater than|over)\s*50\s*%\s*(?:\w+\s+)?collaps)/.test(low)) out['Echo!B224'] = 'Y';
+    else if (/\bivc\b[^\n]{0,80}(?:does not collapse|poor (?:inspiratory )?collapse|minimal collapse|plethoric|collapses? less than 50|(?:less than|under)\s*50\s*%\s*(?:\w+\s+)?collaps)/.test(low)) out['Echo!B224'] = 'N'; }
   for (const [key, pats, kind, [lo, hi]] of MEAS){
     let best = null;
     for (const re of pats){
@@ -5934,7 +5934,7 @@ function parseMeasurements(raw){
       const map = [[/syncope|presyncope/, 'Syncope or presyncope'], [/chest pain|angina|ischemi/, 'Chest pain or suspected ischemia'], [/stroke|\btia\b|\bcva\b|embol(?!.*pulmonary)/, 'Stroke, transient ischemic attack or embolic event'],
         [/endocarditis|bacteremia|vegetation/, 'Suspected endocarditis or bacteremia'], [/atrial fibrillation|\bafib\b|\ba-?fib\b|flutter/, 'Atrial fibrillation or flutter'], [/palpitation|arrhythmi|tachycardia/, 'Palpitations or arrhythmia'],
         [/pulmonary embol|\bpe\b/, 'Suspected pulmonary embolism'], [/pericardial|effusion|tamponade/, 'Pericardial effusion or pericardial disease'], [/pulmonary hypertension/, 'Pulmonary hypertension evaluation'],
-        [/dyspnea|shortness of breath|\bsob\b|heart failure|\bchf\b|edema/, 'Dyspnea or suspected heart failure'], [/cardiomyopathy|reduced ef|low ef/, 'Heart failure or cardiomyopathy'], [/murmur/, 'Murmur or suspected valve disease'],
+        [/cardiomyopathy|reduced ef|low ef|hfref|hfpef|hfmref|known (?:heart failure|chf)|heart failure with (?:reduced|preserved|mildly)|(?:heart failure|chf|cardiomyopathy)[^\n]{0,20}follow|follow[- ]?up[^\n]{0,20}(?:heart failure|chf)/, 'Heart failure or cardiomyopathy'], [/dyspnea|shortness of breath|\bsob\b|heart failure|\bchf\b|edema/, 'Dyspnea or suspected heart failure'], [/murmur/, 'Murmur or suspected valve disease'],
         [/prosthe|valve replacement|tavr|savr/, 'Prosthetic valve evaluation'], [/stenosis|regurgitation|valv/, 'Valve disease'], [/chemo|oncolog|anthracycline|trastuzumab|cancer/, 'Cardio-oncology (before or during cancer therapy)'],
         [/pre-?op|surgical clearance|preoperative/, 'Preoperative assessment'], [/\b(?:ekg|ecg)\b/, 'Abnormal electrocardiogram'], [/congenital/, 'Congenital heart disease'], [/aort(?:ic|a) (?:dilat|aneurysm|root)/, 'Aortic disease or aortic dilation'],
         [/hypotension|shock/, 'Hypotension, shock or hemodynamic instability'], [/hypertension|\bhtn\b|lvh/, 'Hypertension or left ventricular hypertrophy'], [/myocardial infarction|\bstemi\b|\bnstemi\b|\bmi\b/, 'Complication after myocardial infarction']];
